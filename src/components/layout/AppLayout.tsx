@@ -10,11 +10,15 @@ interface AppLayoutProps {
 export function AppLayout({ children }: AppLayoutProps) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
 
+  const handleMenuClick = () => {
+    setIsSidebarOpen(!isSidebarOpen);
+  };
+
   return (
     <div className="min-h-screen bg-background flex">
       <SideNav open={isSidebarOpen} setOpen={setIsSidebarOpen} />
       <div className="flex flex-col flex-1 overflow-hidden">
-        <TopNav onMenuClick={() => setIsSidebarOpen(!isSidebarOpen)} />
+        <TopNav onMenuClick={handleMenuClick} />
         <main className="flex-1 overflow-auto p-4 md:p-6 animate-fade-in">
           {children}
         </main>

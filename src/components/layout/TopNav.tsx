@@ -2,6 +2,7 @@
 import React from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
+import { Menu } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -14,7 +15,11 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 
-export function TopNav() {
+interface TopNavProps {
+  onMenuClick?: () => void;
+}
+
+export function TopNav({ onMenuClick }: TopNavProps) {
   const { session, signOut } = useAuth();
   
   const { data: profile } = useQuery({
@@ -56,6 +61,12 @@ export function TopNav() {
     <div className="border-b">
       <div className="flex h-16 items-center px-4">
         <div className="flex items-center justify-between w-full">
+          {onMenuClick && (
+            <Button variant="ghost" size="icon" onClick={onMenuClick} className="mr-2">
+              <Menu className="h-5 w-5" />
+            </Button>
+          )}
+          
           <div className="font-semibold">SEO Boost Automator</div>
 
           <div className="flex items-center">
