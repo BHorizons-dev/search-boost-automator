@@ -238,9 +238,13 @@ const RankTracking = () => {
                                 onClick={() => setSelectedKeywordId(ranking.keyword_id)}
                               >
                                 <TableCell className="font-medium">
-                                  {ranking.keywords && Array.isArray(ranking.keywords) 
-                                    ? ranking.keywords[0]?.keyword 
-                                    : ranking.keywords?.keyword || ''}
+                                  {ranking.keywords ? 
+                                    (typeof ranking.keywords === 'object' && !Array.isArray(ranking.keywords) 
+                                      ? ranking.keywords.keyword 
+                                      : Array.isArray(ranking.keywords) && ranking.keywords[0] 
+                                        ? ranking.keywords[0].keyword 
+                                        : '') 
+                                    : ''}
                                 </TableCell>
                                 <TableCell className="capitalize">{ranking.search_engine}</TableCell>
                                 <TableCell>{ranking.position}</TableCell>
