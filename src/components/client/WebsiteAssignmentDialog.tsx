@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -76,13 +76,15 @@ export function WebsiteAssignmentDialog({
       
       if (error) throw error;
       return data?.map(item => item.website_id) || [];
-    },
-    onSettled: (data) => {
-      if (data) {
-        setSelectedWebsites(data);
-      }
     }
   });
+  
+  // Set initial selected websites when existing assignments load
+  useEffect(() => {
+    if (existingAssignments) {
+      setSelectedWebsites(existingAssignments);
+    }
+  }, [existingAssignments]);
 
   const handleToggleWebsite = (websiteId: string) => {
     setSelectedWebsites(prev => 
@@ -131,7 +133,7 @@ export function WebsiteAssignmentDialog({
         
         const { error: addError } = await supabase
           .from('client_websites')
-          .insert(newAssignments);
+          .insert(newAssignments as any);
           
         if (addError) throw addError;
       }
