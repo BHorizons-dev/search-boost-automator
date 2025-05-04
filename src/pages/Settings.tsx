@@ -10,6 +10,13 @@ import { Switch } from '@/components/ui/switch';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/components/ui/use-toast';
 import { useQuery } from '@tanstack/react-query';
+import { 
+  Select, 
+  SelectContent, 
+  SelectItem, 
+  SelectTrigger, 
+  SelectValue 
+} from '@/components/ui/select';
 
 const Settings = () => {
   const [isLoading, setIsLoading] = useState(false);
@@ -44,17 +51,19 @@ const Settings = () => {
       return data;
     },
     enabled: !!session?.user?.id,
-    onSuccess: (data) => {
-      if (data) {
-        setFirstName(data.first_name || '');
-        setLastName(data.last_name || '');
-        setCompany(data.company || '');
-      }
-      if (session?.user?.email) {
-        setEmail(session.user.email);
-      }
-    }
   });
+
+  // Update state when profile data is loaded
+  React.useEffect(() => {
+    if (profile) {
+      setFirstName(profile.first_name || '');
+      setLastName(profile.last_name || '');
+      setCompany(profile.company || '');
+    }
+    if (session?.user?.email) {
+      setEmail(session.user.email);
+    }
+  }, [profile, session]);
 
   const handleUpdateProfile = async () => {
     if (!session?.user?.id) {

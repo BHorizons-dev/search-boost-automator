@@ -52,11 +52,19 @@ export function WebsiteForm({ onWebsiteAdded, onCancel }: WebsiteFormProps) {
     }
     
     try {
+      // Get the current user
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      if (!session || !session.user) {
+        throw new Error('You must be logged in to add a website');
+      }
+      
       const { data, error } = await supabase
         .from('websites')
         .insert({
           name: name.trim(),
-          domain: formattedDomain
+          domain: formattedDomain,
+          user_id: session.user.id
         })
         .select();
         
