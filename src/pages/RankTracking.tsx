@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -239,7 +238,7 @@ const RankTracking = () => {
                                 onClick={() => setSelectedKeywordId(ranking.keyword_id)}
                               >
                                 <TableCell className="font-medium">
-                                  {ranking.keywords?.keyword}
+                                  {ranking.keywords ? ranking.keywords.keyword : ''}
                                 </TableCell>
                                 <TableCell className="capitalize">{ranking.search_engine}</TableCell>
                                 <TableCell>{ranking.position}</TableCell>
