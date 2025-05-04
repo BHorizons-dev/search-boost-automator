@@ -1,10 +1,10 @@
 
 import { createClient } from '@supabase/supabase-js';
-import type { Database as SupabaseSchema } from './types';
+import type { Database } from './types';
 
 // Extending the database types to include our new tables
 // This is necessary since we can't edit the auto-generated types.ts file
-interface ExtendedDatabase extends SupabaseSchema {
+interface ExtendedDatabase extends Database {
   public: {
     Tables: {
       clients: {
@@ -59,11 +59,11 @@ interface ExtendedDatabase extends SupabaseSchema {
           created_at?: string | null;
         };
       };
-    } & SupabaseSchema['public']['Tables'];
-    Views: SupabaseSchema['public']['Views'];
-    Functions: SupabaseSchema['public']['Functions'];
-    Enums: SupabaseSchema['public']['Enums'];
-    CompositeTypes: SupabaseSchema['public']['CompositeTypes'];
+    } & Database['public']['Tables'];
+    Views: Database['public']['Views'];
+    Functions: Database['public']['Functions'];
+    Enums: Database['public']['Enums'];
+    CompositeTypes: Database['public']['CompositeTypes'];
   };
 }
 

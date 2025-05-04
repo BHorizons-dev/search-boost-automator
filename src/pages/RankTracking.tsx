@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -231,6 +232,20 @@ const RankTracking = () => {
                           filteredRankings.map((ranking) => {
                             const change = calculateRankChange(ranking.keyword_id, ranking.search_engine);
                             
+                            let keywordText = '';
+                            if (ranking.keywords) {
+                              if (typeof ranking.keywords === 'string') {
+                                keywordText = ranking.keywords;
+                              } else if (typeof ranking.keywords === 'object') {
+                                if (Array.isArray(ranking.keywords) && ranking.keywords.length > 0) {
+                                  keywordText = ranking.keywords[0]?.keyword || '';
+                                } else if (ranking.keywords && 'keyword' in ranking.keywords) {
+                                  // Handle case where keywords is an object with a keyword property
+                                  keywordText = ranking.keywords.keyword || '';
+                                }
+                              }
+                            }
+                            
                             return (
                               <TableRow 
                                 key={ranking.id}
@@ -238,13 +253,7 @@ const RankTracking = () => {
                                 onClick={() => setSelectedKeywordId(ranking.keyword_id)}
                               >
                                 <TableCell className="font-medium">
-                                  {ranking.keywords ? 
-                                    (typeof ranking.keywords === 'object' && !Array.isArray(ranking.keywords) 
-                                      ? ranking.keywords.keyword 
-                                      : Array.isArray(ranking.keywords) && ranking.keywords[0] 
-                                        ? ranking.keywords[0].keyword 
-                                        : '') 
-                                    : ''}
+                                  {keywordText}
                                 </TableCell>
                                 <TableCell className="capitalize">{ranking.search_engine}</TableCell>
                                 <TableCell>{ranking.position}</TableCell>
