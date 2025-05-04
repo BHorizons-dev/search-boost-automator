@@ -62,10 +62,10 @@ export function ClientForm({ onClientAdded, onCancel, clientData }: ClientFormPr
         user_id: session.user.id
       };
       
-      // Use typed query with 'clients' table - create a typesafe object
+      // Insert into clients table with properly typed data
       const { error } = await supabase
         .from('clients')
-        .insert(clientData as any);
+        .insert(clientData);
         
       if (error) throw error;
       

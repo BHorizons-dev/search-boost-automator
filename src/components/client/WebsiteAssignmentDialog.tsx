@@ -133,7 +133,7 @@ export function WebsiteAssignmentDialog({
         
         const { error: addError } = await supabase
           .from('client_websites')
-          .insert(newAssignments as any);
+          .insert(newAssignments);
           
         if (addError) throw addError;
       }
