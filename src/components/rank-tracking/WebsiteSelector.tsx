@@ -22,25 +22,34 @@ export function WebsiteSelector({ selectedWebsiteId, setSelectedWebsiteId }: Web
   const { 
     data: websites, 
     isLoading, 
+    error,
     refetch: refetchWebsites 
   } = useQuery({
     queryKey: ['websites'],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('websites')
-        .select('*')
-        .order('name');
+      try {
+        console.log('Fetching websites...');
+        const { data, error } = await supabase
+          .from('websites')
+          .select('*')
+          .order('name');
+          
+        if (error) {
+          console.error('Error fetching websites:', error);
+          throw error;
+        }
         
-      if (error) {
+        console.log('Websites data:', data);
+        return data || [];
+      } catch (error: any) {
+        console.error('Caught error fetching websites:', error);
         toast({
           title: 'Error fetching websites',
-          description: error.message,
+          description: error.message || 'Failed to fetch websites',
           variant: 'destructive'
         });
         return [];
       }
-      
-      return data || [];
     }
   });
 
@@ -58,6 +67,23 @@ export function WebsiteSelector({ selectedWebsiteId, setSelectedWebsiteId }: Web
 
   if (isLoading) {
     return <div>Loading websites...</div>;
+  }
+
+  if (error) {
+    return (
+      <div className="flex flex-col gap-3">
+        <div className="text-red-500">
+          Error loading websites. Please check your connection and authentication.
+        </div>
+        <Button variant="outline" onClick={() => refetchWebsites()}>
+          Try Again
+        </Button>
+        <Button variant="outline" onClick={() => setShowWebsiteForm(true)}>
+          <Plus className="h-4 w-4 mr-2" />
+          Add Website
+        </Button>
+      </div>
+    );
   }
 
   return (
