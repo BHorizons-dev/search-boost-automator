@@ -77,8 +77,10 @@ export function WebsiteAssignmentDialog({
       if (error) throw error;
       return data?.map(item => item.website_id) || [];
     },
-    onSuccess: (data) => {
-      setSelectedWebsites(data);
+    onSettled: (data) => {
+      if (data) {
+        setSelectedWebsites(data);
+      }
     }
   });
 

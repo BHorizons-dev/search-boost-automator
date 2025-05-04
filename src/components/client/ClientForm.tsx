@@ -62,6 +62,7 @@ export function ClientForm({ onClientAdded, onCancel, clientData }: ClientFormPr
         user_id: session.user.id
       };
       
+      // Use typed query with 'clients' table
       const { error } = await supabase
         .from('clients')
         .insert(clientData);
