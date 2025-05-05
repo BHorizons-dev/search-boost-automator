@@ -76,4 +76,12 @@ export const supabase = createClient<ExtendedDatabase>(SUPABASE_URL, SUPABASE_PU
     persistSession: true,
     autoRefreshToken: true,
   },
+  db: {
+    schema: 'public',  // Explicitly set schema to public
+  },
+  global: {
+    headers: {
+      'X-Client-Info': 'Lovable-App'
+    }
+  }
 });

@@ -22,45 +22,59 @@ export function RankingHistoryChart({ keywordId }: RankingHistoryChartProps) {
   const { data: keyword } = useQuery({
     queryKey: ['keyword', keywordId],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('keywords')
-        .select('keyword')
-        .eq('id', keywordId)
-        .single();
+      try {
+        const { data, error } = await supabase
+          .from('keywords')
+          .select('keyword')
+          .eq('id', keywordId)
+          .single();
+          
+        if (error) {
+          console.error('Error fetching keyword:', error);
+          toast({
+            title: 'Error fetching keyword',
+            description: error.message,
+            variant: 'destructive'
+          });
+          return { keyword: '' };
+        }
         
-      if (error) {
-        toast({
-          title: 'Error fetching keyword',
-          description: error.message,
-          variant: 'destructive'
-        });
+        return data;
+      } catch (err) {
+        console.error('Exception fetching keyword:', err);
         return { keyword: '' };
       }
-      
-      return data;
     },
+    retry: 1
   });
 
   const { data: rankingHistory, isLoading } = useQuery({
     queryKey: ['ranking-history', keywordId],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('rankings')
-        .select('search_engine, position, recorded_at')
-        .eq('keyword_id', keywordId)
-        .order('recorded_at', { ascending: true });
+      try {
+        const { data, error } = await supabase
+          .from('rankings')
+          .select('search_engine, position, recorded_at')
+          .eq('keyword_id', keywordId)
+          .order('recorded_at', { ascending: true });
+          
+        if (error) {
+          console.error('Error fetching ranking history:', error);
+          toast({
+            title: 'Error fetching ranking history',
+            description: error.message,
+            variant: 'destructive'
+          });
+          return [];
+        }
         
-      if (error) {
-        toast({
-          title: 'Error fetching ranking history',
-          description: error.message,
-          variant: 'destructive'
-        });
+        return data || [];
+      } catch (err) {
+        console.error('Exception fetching ranking history:', err);
         return [];
       }
-      
-      return data;
     },
+    retry: 1
   });
   
   // Transform data for the chart
@@ -89,14 +103,14 @@ export function RankingHistoryChart({ keywordId }: RankingHistoryChartProps) {
     return <div className="h-[300px] flex items-center justify-center">Loading chart data...</div>;
   }
 
-  if (!chartData.length) {
+  if (!rankingHistory?.length) {
     return <div className="h-[300px] flex items-center justify-center">No historical data available for this keyword.</div>;
   }
 
   return (
     <div className="h-[400px] w-full">
       <h3 className="text-lg font-medium mb-4">
-        Ranking history for: {keyword?.keyword}
+        Ranking history for: {keyword?.keyword || ''}
       </h3>
       <ResponsiveContainer width="100%" height="90%">
         <LineChart

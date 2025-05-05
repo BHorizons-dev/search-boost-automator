@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { 
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue 
@@ -50,7 +49,8 @@ export function WebsiteSelector({ selectedWebsiteId, setSelectedWebsiteId }: Web
         });
         return [];
       }
-    }
+    },
+    retry: 1
   });
 
   React.useEffect(() => {

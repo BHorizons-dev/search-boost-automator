@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -38,23 +37,35 @@ const RankTracking = () => {
     queryFn: async () => {
       if (!selectedWebsiteId) return [];
       
-      const { data, error } = await supabase
-        .from('keywords')
-        .select('*')
-        .eq('website_id', selectedWebsiteId);
+      try {
+        const { data, error } = await supabase
+          .from('keywords')
+          .select('*')
+          .eq('website_id', selectedWebsiteId);
+          
+        if (error) {
+          console.error('Error fetching keywords:', error);
+          toast({
+            title: 'Error fetching keywords',
+            description: error.message,
+            variant: 'destructive'
+          });
+          return [];
+        }
         
-      if (error) {
+        return data || [];
+      } catch (err) {
+        console.error('Exception fetching keywords:', err);
         toast({
           title: 'Error fetching keywords',
-          description: error.message,
+          description: 'An unexpected error occurred',
           variant: 'destructive'
         });
         return [];
       }
-      
-      return data || [];
     },
-    enabled: !!selectedWebsiteId
+    enabled: !!selectedWebsiteId,
+    retry: 1
   });
 
   // Fetch rankings for all keywords of the selected website
@@ -67,50 +78,47 @@ const RankTracking = () => {
     queryFn: async () => {
       if (!selectedWebsiteId || !keywords?.length) return [];
       
-      const keywordIds = keywords.map(k => k.id);
-      
-      const { data, error } = await supabase
-        .from('rankings')
-        .select(`
-          id,
-          keyword_id,
-          search_engine,
-          position,
-          url,
-          recorded_at,
-          keywords(keyword)
-        `)
-        .in('keyword_id', keywordIds)
-        .order('recorded_at', { ascending: false });
+      try {
+        const keywordIds = keywords.map(k => k.id);
         
-      if (error) {
+        const { data, error } = await supabase
+          .from('rankings')
+          .select(`
+            id,
+            keyword_id,
+            search_engine,
+            position,
+            url,
+            recorded_at,
+            keywords(keyword)
+          `)
+          .in('keyword_id', keywordIds)
+          .order('recorded_at', { ascending: false });
+          
+        if (error) {
+          console.error('Error fetching rankings:', error);
+          toast({
+            title: 'Error fetching rankings',
+            description: error.message,
+            variant: 'destructive'
+          });
+          return [];
+        }
+        
+        console.log('Rankings data:', data);
+        return data || [];
+      } catch (err) {
+        console.error('Exception fetching rankings:', err);
         toast({
           title: 'Error fetching rankings',
-          description: error.message,
+          description: 'An unexpected error occurred',
           variant: 'destructive'
         });
         return [];
       }
-      
-      // Group by keyword_id and search_engine to get the latest rankings
-      const latestRankings: Record<string, Record<string, any>> = {};
-      data.forEach(ranking => {
-        const keywordId = ranking.keyword_id;
-        const searchEngine = ranking.search_engine;
-        
-        if (!latestRankings[keywordId]) {
-          latestRankings[keywordId] = {};
-        }
-        
-        if (!latestRankings[keywordId][searchEngine] || 
-            new Date(ranking.recorded_at) > new Date(latestRankings[keywordId][searchEngine].recorded_at)) {
-          latestRankings[keywordId][searchEngine] = ranking;
-        }
-      });
-      
-      return data;
     },
-    enabled: !!selectedWebsiteId && !!keywords?.length
+    enabled: !!selectedWebsiteId && !!keywords?.length,
+    retry: 1
   });
 
   // Filter rankings by search engine based on active tab
@@ -232,15 +240,15 @@ const RankTracking = () => {
                           filteredRankings.map((ranking) => {
                             const change = calculateRankChange(ranking.keyword_id, ranking.search_engine);
                             
+                            // Safely extract keyword text
                             let keywordText = '';
                             if (ranking.keywords) {
                               if (typeof ranking.keywords === 'string') {
                                 keywordText = ranking.keywords;
                               } else if (typeof ranking.keywords === 'object') {
                                 if (Array.isArray(ranking.keywords) && ranking.keywords.length > 0) {
-                                  keywordText = ranking.keywords[0]?.keyword || '';
+                                  keywordText = String(ranking.keywords[0]?.keyword || '');
                                 } else if (ranking.keywords && 'keyword' in ranking.keywords) {
-                                  // Handle case where keywords is an object with a keyword property
                                   keywordText = String(ranking.keywords.keyword || '');
                                 }
                               }

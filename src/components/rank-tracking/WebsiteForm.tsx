@@ -1,4 +1,3 @@
-
 import React from 'react';
 import {
   Dialog,
@@ -68,7 +67,10 @@ export function WebsiteForm({ onWebsiteAdded, onCancel }: WebsiteFormProps) {
         })
         .select();
         
-      if (error) throw error;
+      if (error) {
+        console.error('Insert error:', error);
+        throw error;
+      }
       
       toast({
         title: 'Website Added',
