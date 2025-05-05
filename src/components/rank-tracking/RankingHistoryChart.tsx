@@ -40,12 +40,18 @@ export function RankingHistoryChart({ keywordId }: RankingHistoryChartProps) {
         }
         
         return data;
-      } catch (err) {
+      } catch (err: any) {
         console.error('Exception fetching keyword:', err);
+        toast({
+          title: 'Error fetching keyword',
+          description: err.message || 'An unknown error occurred',
+          variant: 'destructive'
+        });
         return { keyword: '' };
       }
     },
-    retry: 1
+    retry: 3,
+    retryDelay: 1000
   });
 
   const { data: rankingHistory, isLoading } = useQuery({
@@ -69,12 +75,18 @@ export function RankingHistoryChart({ keywordId }: RankingHistoryChartProps) {
         }
         
         return data || [];
-      } catch (err) {
+      } catch (err: any) {
         console.error('Exception fetching ranking history:', err);
+        toast({
+          title: 'Error fetching ranking history',
+          description: err.message || 'An unknown error occurred',
+          variant: 'destructive'
+        });
         return [];
       }
     },
-    retry: 1
+    retry: 3,
+    retryDelay: 1000
   });
   
   // Transform data for the chart

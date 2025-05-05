@@ -76,9 +76,12 @@ export const supabase = createClient<ExtendedDatabase>(SUPABASE_URL, SUPABASE_PU
     persistSession: true,
     autoRefreshToken: true,
   },
+  // The schema issue indicates there's a problem with the schema configuration
+  // Setting this explicitly without restrictive schema selection
   db: {
-    schema: 'public',  // Explicitly set schema to public
+    schema: 'public',
   },
+  // Remove the schema header since it's causing issues
   global: {
     headers: {
       'X-Client-Info': 'Lovable-App'

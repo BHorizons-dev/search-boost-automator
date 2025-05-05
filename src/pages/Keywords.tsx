@@ -47,23 +47,36 @@ const Keywords = () => {
     queryFn: async () => {
       if (!selectedWebsiteId) return [];
       
-      const { data, error } = await supabase
-        .from('keywords')
-        .select('*')
-        .eq('website_id', selectedWebsiteId);
+      try {
+        const { data, error } = await supabase
+          .from('keywords')
+          .select('*')
+          .eq('website_id', selectedWebsiteId);
+          
+        if (error) {
+          console.error('Error fetching keywords:', error);
+          toast({
+            title: 'Error fetching keywords',
+            description: error.message,
+            variant: 'destructive'
+          });
+          return [];
+        }
         
-      if (error) {
+        return data || [];
+      } catch (error: any) {
+        console.error('Exception fetching keywords:', error);
         toast({
           title: 'Error fetching keywords',
-          description: error.message,
+          description: error.message || 'An unknown error occurred',
           variant: 'destructive'
         });
         return [];
       }
-      
-      return data || [];
     },
-    enabled: !!selectedWebsiteId
+    enabled: !!selectedWebsiteId,
+    retry: 3,
+    retryDelay: 1000
   });
 
   // Filter keywords by search query
@@ -90,7 +103,10 @@ const Keywords = () => {
           importance: parseInt(keywordImportance)
         });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error adding keyword:', error);
+        throw error;
+      }
 
       toast({
         title: 'Keyword Added',
@@ -102,9 +118,10 @@ const Keywords = () => {
       setIsAddKeywordDialogOpen(false);
       refetch();
     } catch (error: any) {
+      console.error('Exception adding keyword:', error);
       toast({
         title: 'Error Adding Keyword',
-        description: error.message,
+        description: error.message || 'An unknown error occurred',
         variant: 'destructive'
       });
     }
