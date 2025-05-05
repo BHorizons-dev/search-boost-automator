@@ -241,7 +241,7 @@ const RankTracking = () => {
                                   keywordText = ranking.keywords[0]?.keyword || '';
                                 } else if (ranking.keywords && 'keyword' in ranking.keywords) {
                                   // Handle case where keywords is an object with a keyword property
-                                  keywordText = ranking.keywords.keyword || '';
+                                  keywordText = String(ranking.keywords.keyword || '');
                                 }
                               }
                             }
