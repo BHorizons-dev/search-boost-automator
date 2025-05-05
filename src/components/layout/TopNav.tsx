@@ -27,20 +27,30 @@ export function TopNav({ onMenuClick }: TopNavProps) {
     queryFn: async () => {
       if (!session?.user?.id) return null;
       
-      const { data, error } = await supabase
-        .from('user_profiles')
-        .select('first_name, last_name')
-        .eq('id', session.user.id)
-        .single();
-      
-      if (error) {
-        console.error('Error fetching profile:', error);
+      try {
+        console.log('Fetching user profile for ID:', session.user.id);
+        
+        const { data, error } = await supabase
+          .from('user_profiles')
+          .select('first_name, last_name')
+          .eq('id', session.user.id)
+          .single();
+        
+        if (error) {
+          console.error('Error fetching profile:', error);
+          return null;
+        }
+        
+        console.log('Profile data:', data);
+        return data;
+      } catch (error) {
+        console.error('Exception fetching profile:', error);
         return null;
       }
-      
-      return data;
     },
     enabled: !!session?.user?.id,
+    retry: 3,
+    retryDelay: 1000
   });
 
   const getInitials = () => {

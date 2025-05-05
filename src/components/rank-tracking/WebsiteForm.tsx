@@ -23,6 +23,7 @@ export function WebsiteForm({ onWebsiteAdded, onCancel }: WebsiteFormProps) {
   const [name, setName] = React.useState('');
   const [domain, setDomain] = React.useState('');
   const [isSubmitting, setIsSubmitting] = React.useState(false);
+  const [debugInfo, setDebugInfo] = React.useState<string | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -37,6 +38,7 @@ export function WebsiteForm({ onWebsiteAdded, onCancel }: WebsiteFormProps) {
     }
     
     setIsSubmitting(true);
+    setDebugInfo(null);
     
     // Format domain (remove protocol if present)
     let formattedDomain = domain.trim().toLowerCase();
@@ -53,11 +55,19 @@ export function WebsiteForm({ onWebsiteAdded, onCancel }: WebsiteFormProps) {
     
     try {
       // Get the current user
-      const { data: { session } } = await supabase.auth.getSession();
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+      
+      if (sessionError) {
+        console.error('Session error:', sessionError);
+        throw new Error('Error getting session: ' + sessionError.message);
+      }
       
       if (!session || !session.user) {
         throw new Error('You must be logged in to add a website');
       }
+
+      console.log('Creating website with user_id:', session.user.id);
+      setDebugInfo(`User ID: ${session.user.id}`);
       
       const { data, error } = await supabase
         .from('websites')
@@ -70,8 +80,11 @@ export function WebsiteForm({ onWebsiteAdded, onCancel }: WebsiteFormProps) {
         
       if (error) {
         console.error('Insert error:', error);
+        setDebugInfo(prev => `${prev || ''}\nInsert error: ${JSON.stringify(error)}`);
         throw error;
       }
+
+      console.log('Website added successfully:', data);
       
       toast({
         title: 'Website Added',
@@ -130,6 +143,13 @@ export function WebsiteForm({ onWebsiteAdded, onCancel }: WebsiteFormProps) {
                 required
               />
             </div>
+
+            {debugInfo && (
+              <div className="text-xs text-red-500 bg-red-50 p-2 rounded mt-2">
+                <p>Debug info (please share this if reporting an issue):</p>
+                <pre className="whitespace-pre-wrap">{debugInfo}</pre>
+              </div>
+            )}
           </div>
           
           <DialogFooter>
