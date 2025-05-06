@@ -47,6 +47,54 @@ export type Database = {
           },
         ]
       }
+      assessments: {
+        Row: {
+          created_at: string | null
+          curriculum_year: string | null
+          description: string
+          estimated_duration: number | null
+          exam_level: string | null
+          id: string
+          level: string | null
+          subject: string
+          time_limit: number | null
+          title: string
+          updated_at: string | null
+          use_stages: boolean | null
+          year_group: string
+        }
+        Insert: {
+          created_at?: string | null
+          curriculum_year?: string | null
+          description: string
+          estimated_duration?: number | null
+          exam_level?: string | null
+          id?: string
+          level?: string | null
+          subject: string
+          time_limit?: number | null
+          title: string
+          updated_at?: string | null
+          use_stages?: boolean | null
+          year_group: string
+        }
+        Update: {
+          created_at?: string | null
+          curriculum_year?: string | null
+          description?: string
+          estimated_duration?: number | null
+          exam_level?: string | null
+          id?: string
+          level?: string | null
+          subject?: string
+          time_limit?: number | null
+          title?: string
+          updated_at?: string | null
+          use_stages?: boolean | null
+          year_group?: string
+        }
+        Relationships: []
+      }
       keywords: {
         Row: {
           created_at: string | null
@@ -78,6 +126,68 @@ export type Database = {
             columns: ["website_id"]
             isOneToOne: false
             referencedRelation: "websites"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      questions: {
+        Row: {
+          assessment_id: string | null
+          correct_answer: Json
+          created_at: string | null
+          curriculum_point: string | null
+          explanation: string | null
+          id: string
+          image: string | null
+          options: Json | null
+          question_order: number
+          section_type: string | null
+          subtopic: string | null
+          text: string
+          topic: string | null
+          type: string
+          updated_at: string | null
+        }
+        Insert: {
+          assessment_id?: string | null
+          correct_answer: Json
+          created_at?: string | null
+          curriculum_point?: string | null
+          explanation?: string | null
+          id?: string
+          image?: string | null
+          options?: Json | null
+          question_order: number
+          section_type?: string | null
+          subtopic?: string | null
+          text: string
+          topic?: string | null
+          type: string
+          updated_at?: string | null
+        }
+        Update: {
+          assessment_id?: string | null
+          correct_answer?: Json
+          created_at?: string | null
+          curriculum_point?: string | null
+          explanation?: string | null
+          id?: string
+          image?: string | null
+          options?: Json | null
+          question_order?: number
+          section_type?: string | null
+          subtopic?: string | null
+          text?: string
+          topic?: string | null
+          type?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "questions_assessment_id_fkey"
+            columns: ["assessment_id"]
+            isOneToOne: false
+            referencedRelation: "assessments"
             referencedColumns: ["id"]
           },
         ]

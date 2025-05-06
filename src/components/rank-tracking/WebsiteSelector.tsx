@@ -15,6 +15,13 @@ interface WebsiteSelectorProps {
   setSelectedWebsiteId: (id: string | null) => void;
 }
 
+// Define a type for Supabase errors which includes the code property
+interface SupabaseError extends Error {
+  code?: string;
+  details?: string | null;
+  hint?: string | null;
+}
+
 export function WebsiteSelector({ selectedWebsiteId, setSelectedWebsiteId }: WebsiteSelectorProps) {
   const [showWebsiteForm, setShowWebsiteForm] = React.useState(false);
   const [debugInfo, setDebugInfo] = React.useState<string | null>(null);
@@ -142,7 +149,8 @@ export function WebsiteSelector({ selectedWebsiteId, setSelectedWebsiteId }: Web
         <div className="bg-red-50 p-3 rounded border border-red-200 text-sm">
           <p className="font-medium text-red-800 mb-1">Error loading websites</p>
           <p className="text-red-600">
-            {error.code === 'PGRST106' 
+            {/* Use type assertion to handle the potential code property safely */}
+            {(error as SupabaseError).code === 'PGRST106' 
               ? 'Database schema configuration error. This is likely a server-side issue.'
               : (error as Error).message}
           </p>
