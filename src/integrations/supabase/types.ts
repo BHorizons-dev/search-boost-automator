@@ -9,7 +9,172 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      [_ in never]: never
+      client_websites: {
+        Row: {
+          client_id: string
+          created_at: string
+          id: string
+          website_id: string
+        }
+        Insert: {
+          client_id: string
+          created_at?: string
+          id?: string
+          website_id: string
+        }
+        Update: {
+          client_id?: string
+          created_at?: string
+          id?: string
+          website_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "client_websites_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_websites_website_id_fkey"
+            columns: ["website_id"]
+            isOneToOne: false
+            referencedRelation: "websites"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      clients: {
+        Row: {
+          company: string | null
+          created_at: string
+          email: string | null
+          id: string
+          name: string
+          phone: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          company?: string | null
+          created_at?: string
+          email?: string | null
+          id?: string
+          name: string
+          phone?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          company?: string | null
+          created_at?: string
+          email?: string | null
+          id?: string
+          name?: string
+          phone?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      keywords: {
+        Row: {
+          created_at: string
+          id: string
+          importance: number
+          keyword: string
+          updated_at: string
+          website_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          importance?: number
+          keyword: string
+          updated_at?: string
+          website_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          importance?: number
+          keyword?: string
+          updated_at?: string
+          website_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "keywords_website_id_fkey"
+            columns: ["website_id"]
+            isOneToOne: false
+            referencedRelation: "websites"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      rankings: {
+        Row: {
+          id: string
+          keyword_id: string
+          position: number
+          recorded_at: string
+          search_engine: string
+          url: string | null
+        }
+        Insert: {
+          id?: string
+          keyword_id: string
+          position: number
+          recorded_at?: string
+          search_engine: string
+          url?: string | null
+        }
+        Update: {
+          id?: string
+          keyword_id?: string
+          position?: number
+          recorded_at?: string
+          search_engine?: string
+          url?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "rankings_keyword_id_fkey"
+            columns: ["keyword_id"]
+            isOneToOne: false
+            referencedRelation: "keywords"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      websites: {
+        Row: {
+          created_at: string
+          domain: string
+          id: string
+          name: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          domain: string
+          id?: string
+          name: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          domain?: string
+          id?: string
+          name?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
