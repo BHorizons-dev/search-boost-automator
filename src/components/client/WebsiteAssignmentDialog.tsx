@@ -59,11 +59,11 @@ export function WebsiteAssignmentDialog({
       const { data, error } = await supabase
         .from('clients')
         .select('*')
-        .eq('id', clientId as any)
+        .eq('id', clientId)
         .single();
       
       if (error) throw error;
-      return data as unknown as Client;
+      return data;
     }
   });
 
@@ -77,7 +77,7 @@ export function WebsiteAssignmentDialog({
         .order('name');
       
       if (error) throw error;
-      return (data || []) as unknown as Website[];
+      return data || [];
     }
   });
 
@@ -88,7 +88,7 @@ export function WebsiteAssignmentDialog({
       const { data, error } = await supabase
         .from('client_websites')
         .select('website_id')
-        .eq('client_id', clientId as any);
+        .eq('client_id', clientId);
       
       if (error) throw error;
       
@@ -96,8 +96,8 @@ export function WebsiteAssignmentDialog({
       if (data) {
         return data.map(row => {
           // Check if row is a valid object with website_id property
-          if (row && typeof row === 'object' && 'website_id' in row) {
-            return row.website_id as string;
+          if (row && typeof row === 'object' && row !== null && 'website_id' in row) {
+            return row.website_id;
           }
           return '';
         }).filter(id => id !== '');
@@ -145,8 +145,8 @@ export function WebsiteAssignmentDialog({
         const { error: removeError } = await supabase
           .from('client_websites')
           .delete()
-          .eq('client_id', clientId as any)
-          .in('website_id', websitesToRemove as any);
+          .eq('client_id', clientId)
+          .in('website_id', websitesToRemove);
           
         if (removeError) throw removeError;
       }
@@ -160,7 +160,7 @@ export function WebsiteAssignmentDialog({
         
         const { error: addError } = await supabase
           .from('client_websites')
-          .insert(newAssignments as any);
+          .insert(newAssignments);
           
         if (addError) throw addError;
       }

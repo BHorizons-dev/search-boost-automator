@@ -36,7 +36,7 @@ export function RankingHistoryChart({ keywordId }: RankingHistoryChartProps) {
         const { data, error } = await supabase
           .from('keywords')
           .select('keyword')
-          .eq('id', keywordId as any)
+          .eq('id', keywordId)
           .single();
           
         if (error) {
@@ -49,7 +49,7 @@ export function RankingHistoryChart({ keywordId }: RankingHistoryChartProps) {
           return { keyword: '' };
         }
         
-        return data as unknown as KeywordData;
+        return data;
       } catch (err: any) {
         console.error('Exception fetching keyword:', err);
         toast({
@@ -71,7 +71,7 @@ export function RankingHistoryChart({ keywordId }: RankingHistoryChartProps) {
         const { data, error } = await supabase
           .from('rankings')
           .select('search_engine, position, recorded_at')
-          .eq('keyword_id', keywordId as any)
+          .eq('keyword_id', keywordId)
           .order('recorded_at', { ascending: true });
           
         if (error) {
@@ -84,7 +84,7 @@ export function RankingHistoryChart({ keywordId }: RankingHistoryChartProps) {
           return [];
         }
         
-        return (data || []) as unknown as RankingData[];
+        return data || [];
       } catch (err: any) {
         console.error('Exception fetching ranking history:', err);
         toast({

@@ -23,13 +23,14 @@ interface TopNavProps {
 interface UserProfile {
   first_name: string | null;
   last_name: string | null;
+  company?: string | null;
 }
 
 export function TopNav({ onMenuClick }: TopNavProps) {
   const { session, signOut } = useAuth();
   const [profileDebugInfo, setProfileDebugInfo] = React.useState<string | null>(null);
   
-  const { data: profile, error: profileError } = useQuery<UserProfile | null>({
+  const { data: profile } = useQuery<UserProfile | null>({
     queryKey: ['user-profile', session?.user?.id],
     queryFn: async () => {
       if (!session?.user?.id) return null;
@@ -45,7 +46,7 @@ export function TopNav({ onMenuClick }: TopNavProps) {
         const { data, error } = await supabase
           .from('user_profiles')
           .select('first_name, last_name')
-          .eq('id', session.user.id as any)
+          .eq('id', session.user.id)
           .maybeSingle();
         
         if (error) {
