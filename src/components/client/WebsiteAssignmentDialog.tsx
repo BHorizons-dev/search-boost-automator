@@ -21,6 +21,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/components/ui/use-toast';
 import { useQuery } from '@tanstack/react-query';
+import type { TablesSelect } from '@/integrations/supabase/client';
 
 interface WebsiteAssignmentDialogProps {
   clientId: string;
@@ -29,20 +30,10 @@ interface WebsiteAssignmentDialogProps {
 }
 
 // Define a type for the website data
-interface Website {
-  id: string;
-  name: string;
-  domain: string;
-}
+type Website = TablesSelect['websites'];
 
 // Define a type for the client data
-interface Client {
-  id: string;
-  name: string;
-  email?: string | null;
-  phone?: string | null;
-  company?: string | null;
-}
+type Client = TablesSelect['clients'];
 
 export function WebsiteAssignmentDialog({ 
   clientId, 
@@ -53,7 +44,7 @@ export function WebsiteAssignmentDialog({
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Fetch client data
-  const { data: client } = useQuery<Client | null>({
+  const { data: client } = useQuery<Client>({
     queryKey: ['client', clientId],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -95,7 +86,6 @@ export function WebsiteAssignmentDialog({
       // Extract website IDs safely
       if (data) {
         return data.map(row => {
-          // Check if row is a valid object with website_id property
           if (row && typeof row === 'object' && row !== null && 'website_id' in row) {
             return row.website_id;
           }

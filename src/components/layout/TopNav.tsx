@@ -1,4 +1,3 @@
-
 import React from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -15,16 +14,13 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/components/ui/use-toast";
+import type { TablesSelect } from "@/integrations/supabase/client";
 
 interface TopNavProps {
   onMenuClick?: () => void;
 }
 
-interface UserProfile {
-  first_name: string | null;
-  last_name: string | null;
-  company?: string | null;
-}
+type UserProfile = TablesSelect['user_profiles'];
 
 export function TopNav({ onMenuClick }: TopNavProps) {
   const { session, signOut } = useAuth();
@@ -45,7 +41,7 @@ export function TopNav({ onMenuClick }: TopNavProps) {
         // Explicitly setting schema in the query to avoid schema issues
         const { data, error } = await supabase
           .from('user_profiles')
-          .select('first_name, last_name')
+          .select('first_name, last_name, company')
           .eq('id', session.user.id)
           .maybeSingle();
         
@@ -64,7 +60,7 @@ export function TopNav({ onMenuClick }: TopNavProps) {
         }
         
         console.log('Profile data:', data);
-        return data as UserProfile;
+        return data;
       } catch (error) {
         console.error('Exception fetching profile:', error);
         setProfileDebugInfo(`Exception: ${(error as Error).message}`);
