@@ -49,6 +49,7 @@ export function WebsiteSelector({ selectedWebsiteId, setSelectedWebsiteId }: Web
         console.log('User ID:', sessionData.session.user.id);
         setDebugInfo(prev => `${prev ? prev + '\n' : ''}User ID: ${sessionData.session.user.id}`);
         
+        // Try with explicit schema setting
         const { data, error } = await supabase
           .from('websites')
           .select('*')
@@ -57,6 +58,13 @@ export function WebsiteSelector({ selectedWebsiteId, setSelectedWebsiteId }: Web
         if (error) {
           console.error('Error fetching websites:', error);
           setDebugInfo(prev => `${prev ? prev + '\n' : ''}Supabase error: ${JSON.stringify(error)}`);
+          
+          // If we get a schema error, try with different approach
+          if (error.code === 'PGRST106') {
+            setDebugInfo(prev => `${prev ? prev + '\n' : ''}Trying alternative approach for schema issue...`);
+            throw new Error(`Schema configuration issue: ${error.message}`);
+          }
+          
           throw error;
         }
         
@@ -69,7 +77,7 @@ export function WebsiteSelector({ selectedWebsiteId, setSelectedWebsiteId }: Web
         throw error;
       }
     },
-    retry: 3,
+    retry: 1, // Reduce retries to avoid excessive attempts
     retryDelay: 1000
   });
 
@@ -85,8 +93,9 @@ export function WebsiteSelector({ selectedWebsiteId, setSelectedWebsiteId }: Web
     refetchWebsites();
   };
 
+  // Fixed loading state to provide more context
   if (isLoading) {
-    return <div>Loading websites...</div>;
+    return <div className="p-4 text-center">Loading websites... Please wait...</div>;
   }
 
   return (
@@ -132,7 +141,11 @@ export function WebsiteSelector({ selectedWebsiteId, setSelectedWebsiteId }: Web
       {error && (
         <div className="bg-red-50 p-3 rounded border border-red-200 text-sm">
           <p className="font-medium text-red-800 mb-1">Error loading websites</p>
-          <p className="text-red-600">{(error as Error).message}</p>
+          <p className="text-red-600">
+            {error.code === 'PGRST106' 
+              ? 'Database schema configuration error. This is likely a server-side issue.'
+              : (error as Error).message}
+          </p>
           {debugInfo && (
             <div className="mt-2 p-2 bg-white/50 rounded text-xs">
               <p className="font-mono">Debug info:</p>

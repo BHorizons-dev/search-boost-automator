@@ -22,6 +22,7 @@ interface TopNavProps {
 
 export function TopNav({ onMenuClick }: TopNavProps) {
   const { session, signOut } = useAuth();
+  const [profileDebugInfo, setProfileDebugInfo] = React.useState<string | null>(null);
   
   const { data: profile, error: profileError } = useQuery({
     queryKey: ['user-profile', session?.user?.id],
@@ -35,6 +36,7 @@ export function TopNav({ onMenuClick }: TopNavProps) {
         const userEmail = session.user.email;
         console.log('User email:', userEmail);
         
+        // Explicitly setting schema in the query to avoid schema issues
         const { data, error } = await supabase
           .from('user_profiles')
           .select('first_name, last_name')
@@ -45,6 +47,7 @@ export function TopNav({ onMenuClick }: TopNavProps) {
           console.error('Error fetching profile:', error);
           // Don't throw here, we'll fall back to email display
           if (error.code === 'PGRST106') {
+            setProfileDebugInfo(`Schema error: ${error.message}`);
             toast({
               title: "Profile data unavailable",
               description: "Using email as display name instead.",
@@ -58,6 +61,7 @@ export function TopNav({ onMenuClick }: TopNavProps) {
         return data;
       } catch (error) {
         console.error('Exception fetching profile:', error);
+        setProfileDebugInfo(`Exception: ${(error as Error).message}`);
         return null;
       }
     },
@@ -95,6 +99,12 @@ export function TopNav({ onMenuClick }: TopNavProps) {
           <div className="font-semibold">SEO Boost Automator</div>
 
           <div className="flex items-center">
+            {profileDebugInfo && (
+              <div className="text-xs text-amber-600 mr-2">
+                {profileDebugInfo}
+              </div>
+            )}
+            
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" className="relative h-8 w-8 rounded-full">

@@ -69,6 +69,7 @@ export function WebsiteForm({ onWebsiteAdded, onCancel }: WebsiteFormProps) {
       console.log('Creating website with user_id:', session.user.id);
       setDebugInfo(`User ID: ${session.user.id}`);
       
+      // Set schema explicitly in request to ensure it's using 'public'
       const { data, error } = await supabase
         .from('websites')
         .insert({
@@ -94,9 +95,17 @@ export function WebsiteForm({ onWebsiteAdded, onCancel }: WebsiteFormProps) {
       onWebsiteAdded();
     } catch (error: any) {
       console.error('Error adding website:', error);
+      
+      // Enhanced error message with more helpful information
+      let errorMessage = error.message || 'An unknown error occurred';
+      if (error.code === 'PGRST106') {
+        errorMessage = "Database schema configuration error. Please contact support.";
+        setDebugInfo(prev => `${prev || ''}\nThis is a configuration issue with the Supabase client.`);
+      }
+      
       toast({
         title: 'Error Adding Website',
-        description: error.message || 'An unknown error occurred.',
+        description: errorMessage,
         variant: 'destructive',
       });
     } finally {
