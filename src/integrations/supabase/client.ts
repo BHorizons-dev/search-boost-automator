@@ -76,13 +76,12 @@ export const supabase = createClient<ExtendedDatabase>(SUPABASE_URL, SUPABASE_PU
     persistSession: true,
     autoRefreshToken: true,
   },
-  // IMPORTANT: The schema must be explicitly set to 'public'
-  // and we need to make sure we're not introducing any problematic headers
+  // Update schema to match what the Supabase instance is expecting (api instead of public)
   db: {
-    schema: 'public'
+    schema: 'api'
   },
+  // Remove any problematic headers
   global: {
-    // Disable headers that might cause conflicts with Supabase's PostgREST server
     headers: {}
   }
 });
