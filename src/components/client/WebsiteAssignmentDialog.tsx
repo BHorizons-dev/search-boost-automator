@@ -63,7 +63,7 @@ export function WebsiteAssignmentDialog({
         .single();
       
       if (error) throw error;
-      return data as Client;
+      return data as unknown as Client;
     }
   });
 
@@ -77,7 +77,7 @@ export function WebsiteAssignmentDialog({
         .order('name');
       
       if (error) throw error;
-      return (data || []) as Website[];
+      return (data || []) as unknown as Website[];
     }
   });
 
@@ -94,7 +94,13 @@ export function WebsiteAssignmentDialog({
       
       // Extract website IDs safely
       if (data) {
-        return data.map(row => row.website_id as string);
+        return data.map(row => {
+          // Check if row is a valid object with website_id property
+          if (row && typeof row === 'object' && 'website_id' in row) {
+            return row.website_id as string;
+          }
+          return '';
+        }).filter(id => id !== '');
       }
       return [];
     }

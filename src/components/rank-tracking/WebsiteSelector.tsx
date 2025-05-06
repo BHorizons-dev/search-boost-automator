@@ -63,7 +63,7 @@ export function WebsiteSelector({ selectedWebsiteId, setSelectedWebsiteId }: Web
         console.log('User ID:', sessionData.session.user.id);
         setDebugInfo(prev => `${prev ? prev + '\n' : ''}User ID: ${sessionData.session.user.id}`);
         
-        // Try with explicit schema setting and proper error handling
+        // Try with proper error handling
         const { data, error } = await supabase
           .from('websites')
           .select('*')
@@ -75,7 +75,7 @@ export function WebsiteSelector({ selectedWebsiteId, setSelectedWebsiteId }: Web
           
           // Handle schema error specifically
           if (error.code === 'PGRST106') {
-            setDebugInfo(prev => `${prev ? prev + '\n' : ''}Schema configuration issue. Ensure tables exist in the API schema.`);
+            setDebugInfo(prev => `${prev ? prev + '\n' : ''}Schema configuration issue. Ensure tables exist in the public schema.`);
             toast({
               title: "Schema Configuration Error",
               description: "There's an issue with the database schema configuration. Please contact support.",
@@ -88,7 +88,7 @@ export function WebsiteSelector({ selectedWebsiteId, setSelectedWebsiteId }: Web
         
         console.log('Websites data:', data);
         setDebugInfo(prev => `${prev ? prev + '\n' : ''}Websites fetched: ${data?.length || 0}`);
-        return (data || []) as Website[];
+        return (data || []) as unknown as Website[];
       } catch (error: any) {
         console.error('Caught error fetching websites:', error);
         setDebugInfo(prev => `${prev ? prev + '\n' : ''}Exception: ${error.message || 'Unknown error'}`);

@@ -49,7 +49,7 @@ export function RankingHistoryChart({ keywordId }: RankingHistoryChartProps) {
           return { keyword: '' };
         }
         
-        return data as KeywordData;
+        return data as unknown as KeywordData;
       } catch (err: any) {
         console.error('Exception fetching keyword:', err);
         toast({
@@ -84,7 +84,7 @@ export function RankingHistoryChart({ keywordId }: RankingHistoryChartProps) {
           return [];
         }
         
-        return (data || []) as RankingData[];
+        return (data || []) as unknown as RankingData[];
       } catch (err: any) {
         console.error('Exception fetching ranking history:', err);
         toast({
@@ -101,13 +101,14 @@ export function RankingHistoryChart({ keywordId }: RankingHistoryChartProps) {
   
   // Transform data for the chart
   const chartData = React.useMemo(() => {
-    if (!rankingHistory) return [];
+    if (!rankingHistory || !Array.isArray(rankingHistory)) return [];
     
     // Create map of dates to help collect data points by date
     const dateMap: Record<string, any> = {};
     
     rankingHistory.forEach(record => {
-      if (!record.recorded_at) return; // Skip records without a date
+      if (!record || typeof record !== 'object') return;
+      if (!('recorded_at' in record) || !record.recorded_at) return;
       
       const date = new Date(record.recorded_at).toLocaleDateString();
       
@@ -116,7 +117,7 @@ export function RankingHistoryChart({ keywordId }: RankingHistoryChartProps) {
       }
       
       // Add the position for this search engine
-      if (record.search_engine) {
+      if ('search_engine' in record && record.search_engine && 'position' in record) {
         dateMap[date][record.search_engine] = record.position;
       }
     });
@@ -136,7 +137,7 @@ export function RankingHistoryChart({ keywordId }: RankingHistoryChartProps) {
   return (
     <div className="h-[400px] w-full">
       <h3 className="text-lg font-medium mb-4">
-        Ranking history for: {keyword?.keyword || ''}
+        Ranking history for: {keyword && 'keyword' in keyword ? keyword.keyword : ''}
       </h3>
       <ResponsiveContainer width="100%" height="90%">
         <LineChart

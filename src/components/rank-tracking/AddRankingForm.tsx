@@ -63,7 +63,7 @@ export function AddRankingForm({
       const { error } = await supabase
         .from('rankings')
         .insert({
-          keyword_id: keywordId as any,
+          keyword_id: keywordId,
           search_engine: searchEngine,
           position: positionNum,
           url: url || null,

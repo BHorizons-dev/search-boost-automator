@@ -5,7 +5,7 @@ import type { Database as SupabaseDatabase } from './types';
 // Extending the database types to include our new tables
 // This is necessary since we can't edit the auto-generated types.ts file
 interface ExtendedDatabase extends SupabaseDatabase {
-  api: {
+  public: {
     Tables: {
       clients: {
         Row: {
@@ -137,6 +137,44 @@ interface ExtendedDatabase extends SupabaseDatabase {
           recorded_at?: string | null;
         };
       };
+      tasks: {
+        Row: {
+          id: string;
+          website_id: string;
+          title: string;
+          description: string | null;
+          task_type: string;
+          priority: string;
+          status: string;
+          completed_at: string | null;
+          created_at: string | null;
+          updated_at: string | null;
+        };
+        Insert: {
+          id?: string;
+          website_id: string;
+          title: string;
+          description?: string | null;
+          task_type: string;
+          priority?: string;
+          status?: string;
+          completed_at?: string | null;
+          created_at?: string | null;
+          updated_at?: string | null;
+        };
+        Update: {
+          id?: string;
+          website_id?: string;
+          title?: string;
+          description?: string | null;
+          task_type?: string;
+          priority?: string;
+          status?: string;
+          completed_at?: string | null;
+          created_at?: string | null;
+          updated_at?: string | null;
+        };
+      };
     } & SupabaseDatabase['public']['Tables'];
     Views: SupabaseDatabase['public']['Views'];
     Functions: SupabaseDatabase['public']['Functions'];
@@ -154,9 +192,9 @@ export const supabase = createClient<ExtendedDatabase>(SUPABASE_URL, SUPABASE_PU
     persistSession: true,
     autoRefreshToken: true,
   },
-  // Use the correct schema name
+  // Use the public schema
   db: {
-    schema: 'api'
+    schema: 'public'
   },
   // Remove any problematic headers
   global: {

@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { 
@@ -73,6 +72,20 @@ const statusOptions = [
   { value: 'cancelled', label: 'Cancelled', icon: AlertTriangle, color: 'bg-red-100 text-red-800' },
 ];
 
+// Define Task interface
+interface Task {
+  id: string;
+  title: string;
+  description: string | null;
+  task_type: string;
+  priority: string;
+  status: string;
+  website_id: string;
+  created_at: string | null;
+  completed_at: string | null;
+  updated_at: string | null;
+}
+
 const Automation = () => {
   const { toast } = useToast();
   const [selectedWebsiteId, setSelectedWebsiteId] = useState<string | null>(null);
@@ -87,7 +100,7 @@ const Automation = () => {
   });
 
   // Fetch tasks for the selected website
-  const { data: tasks, isLoading, refetch } = useQuery({
+  const { data: tasks, isLoading, refetch } = useQuery<Task[]>({
     queryKey: ['tasks', selectedWebsiteId],
     queryFn: async () => {
       if (!selectedWebsiteId) return [];
@@ -95,7 +108,7 @@ const Automation = () => {
       const { data, error } = await supabase
         .from('tasks')
         .select('*')
-        .eq('website_id', selectedWebsiteId);
+        .eq('website_id', selectedWebsiteId as any);
         
       if (error) {
         toast({
@@ -106,13 +119,15 @@ const Automation = () => {
         return [];
       }
       
-      return data || [];
+      return (data || []) as unknown as Task[];
     },
     enabled: !!selectedWebsiteId
   });
 
   // Filter tasks based on active tab
   const filteredTasks = tasks?.filter(task => {
+    if (!task || typeof task !== 'object' || !('status' in task)) return false;
+    
     if (activeTab === 'all') return true;
     if (activeTab === 'completed') return task.status === 'completed';
     if (activeTab === 'pending') return task.status === 'pending';
@@ -145,7 +160,7 @@ const Automation = () => {
         .insert({
           ...newTask,
           website_id: selectedWebsiteId
-        });
+        } as any);
 
       if (error) throw error;
 
@@ -313,7 +328,7 @@ const Automation = () => {
                             {getStatusBadge(task.status)}
                           </TableCell>
                           <TableCell>
-                            {new Date(task.created_at).toLocaleDateString()}
+                            {task.created_at ? new Date(task.created_at).toLocaleDateString() : 'N/A'}
                           </TableCell>
                           <TableCell className="text-right">
                             <div className="flex justify-end gap-2">
