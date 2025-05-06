@@ -183,7 +183,7 @@ interface ExtendedDatabase extends SupabaseDatabase {
   };
 }
 
-// Updated Supabase URL and key for the new project
+// Supabase URL and key for the project
 const SUPABASE_URL = "https://cllf2l24ljoggktuebdm.supabase.co";
 const SUPABASE_PUBLISHABLE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNsbGYybDI0bGpvZ2drdHVlYmRtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDY1NTM0NTQsImV4cCI6MjA2MTkyOTQ1NH0.rgmd2nUrMqZnKouN5Dt8iDlmPYTOqQHp6jVS7XVWcXM";
 

@@ -28,7 +28,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           console.error('Error getting session:', error);
           toast({
             title: 'Authentication Error',
-            description: error.message,
+            description: error.message || 'Failed to get authentication session',
             variant: 'destructive',
           });
           return;
@@ -37,19 +37,26 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setSession(data.session);
       } catch (error: any) {
         console.error('Unexpected error during session check:', error);
+        toast({
+          title: 'Connection Error',
+          description: error.message || 'Failed to connect to authentication service',
+          variant: 'destructive',
+        });
       } finally {
         setIsLoading(false);
       }
     }
 
-    getInitialSession();
-
+    // Set up auth state listener first
     const { data: authListener } = supabase.auth.onAuthStateChange(
-      async (event, newSession) => {
+      (event, newSession) => {
         console.log('Auth state changed:', event);
         setSession(newSession);
       }
     );
+
+    // Then check for existing session
+    getInitialSession();
 
     return () => {
       authListener.subscription.unsubscribe();
@@ -62,9 +69,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const { error } = await supabase.auth.signInWithPassword({ email, password });
       
       if (error) {
+        console.error('Sign in error:', error);
         toast({
           title: 'Sign In Error',
-          description: error.message,
+          description: error.message || 'Failed to sign in',
           variant: 'destructive',
         });
         throw error;
@@ -74,6 +82,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         title: 'Sign In Successful',
         description: 'You have successfully signed in.',
       });
+    } catch (error: any) {
+      console.error('Unexpected sign in error:', error);
+      // Additional error handling for network errors
+      if (error.message === 'Failed to fetch') {
+        toast({
+          title: 'Connection Error',
+          description: 'Unable to connect to authentication service. Please check your internet connection.',
+          variant: 'destructive',
+        });
+      }
     } finally {
       setIsLoading(false);
     }
@@ -91,9 +109,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       });
       
       if (error) {
+        console.error('Sign up error:', error);
         toast({
           title: 'Sign Up Error',
-          description: error.message,
+          description: error.message || 'Failed to sign up',
           variant: 'destructive',
         });
         throw error;
@@ -103,6 +122,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         title: 'Sign Up Successful',
         description: 'Please check your email to confirm your registration.',
       });
+    } catch (error: any) {
+      console.error('Unexpected sign up error:', error);
+      // Additional error handling for network errors
+      if (error.message === 'Failed to fetch') {
+        toast({
+          title: 'Connection Error',
+          description: 'Unable to connect to authentication service. Please check your internet connection.',
+          variant: 'destructive',
+        });
+      }
     } finally {
       setIsLoading(false);
     }
@@ -116,7 +145,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (error) {
         toast({
           title: 'Sign Out Error',
-          description: error.message,
+          description: error.message || 'Failed to sign out',
           variant: 'destructive',
         });
         throw error;
@@ -126,6 +155,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         title: 'Sign Out Successful',
         description: 'You have been signed out.',
       });
+    } catch (error: any) {
+      console.error('Unexpected sign out error:', error);
     } finally {
       setIsLoading(false);
     }
