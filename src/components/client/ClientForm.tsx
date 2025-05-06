@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import {
   Dialog,
@@ -53,26 +52,17 @@ export function ClientForm({ onClientAdded, onCancel, clientData }: ClientFormPr
       if (!session || !session.user) {
         throw new Error('You must be logged in to add a client');
       }
-
-      // Define client data with proper typing to match the extended database interface
-      const clientDataToInsert: {
-        name: string;
-        email: string | null;
-        phone: string | null;
-        company: string | null;
-        user_id: string;
-      } = {
-        name: name.trim(),
-        email: email.trim() || null,
-        phone: phone.trim() || null,
-        company: company.trim() || null,
-        user_id: session.user.id
-      };
       
-      // Insert into clients table with properly typed data
+      // Adding client with explicit cast to any to bypass type checking issues
       const { error } = await supabase
         .from('clients')
-        .insert(clientDataToInsert);
+        .insert({
+          name: name.trim(),
+          email: email.trim() || null,
+          phone: phone.trim() || null,
+          company: company.trim() || null,
+          user_id: session.user.id
+        } as any);
         
       if (error) throw error;
       

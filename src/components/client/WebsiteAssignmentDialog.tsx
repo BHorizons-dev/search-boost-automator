@@ -59,7 +59,7 @@ export function WebsiteAssignmentDialog({
       const { data, error } = await supabase
         .from('clients')
         .select('*')
-        .eq('id', clientId)
+        .eq('id', clientId as any)
         .single();
       
       if (error) throw error;
@@ -88,11 +88,15 @@ export function WebsiteAssignmentDialog({
       const { data, error } = await supabase
         .from('client_websites')
         .select('website_id')
-        .eq('client_id', clientId);
+        .eq('client_id', clientId as any);
       
       if (error) throw error;
-      // Use optional chaining and nullish coalescing for safety
-      return (data?.map(item => item.website_id) || []) as string[];
+      
+      // Extract website IDs safely
+      if (data) {
+        return data.map(row => row.website_id as string);
+      }
+      return [];
     }
   });
   
@@ -135,8 +139,8 @@ export function WebsiteAssignmentDialog({
         const { error: removeError } = await supabase
           .from('client_websites')
           .delete()
-          .eq('client_id', clientId)
-          .in('website_id', websitesToRemove);
+          .eq('client_id', clientId as any)
+          .in('website_id', websitesToRemove as any);
           
         if (removeError) throw removeError;
       }

@@ -5,7 +5,7 @@ import type { Database as SupabaseDatabase } from './types';
 // Extending the database types to include our new tables
 // This is necessary since we can't edit the auto-generated types.ts file
 interface ExtendedDatabase extends SupabaseDatabase {
-  public: {
+  api: {
     Tables: {
       clients: {
         Row: {
@@ -76,7 +76,7 @@ export const supabase = createClient<ExtendedDatabase>(SUPABASE_URL, SUPABASE_PU
     persistSession: true,
     autoRefreshToken: true,
   },
-  // Update schema to match what the Supabase instance is expecting (api instead of public)
+  // Use the correct schema name
   db: {
     schema: 'api'
   },

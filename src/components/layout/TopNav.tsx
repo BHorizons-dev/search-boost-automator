@@ -1,3 +1,4 @@
+
 import React from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -44,7 +45,7 @@ export function TopNav({ onMenuClick }: TopNavProps) {
         const { data, error } = await supabase
           .from('user_profiles')
           .select('first_name, last_name')
-          .eq('id', session.user.id)
+          .eq('id', session.user.id as any)
           .maybeSingle();
         
         if (error) {

@@ -46,10 +46,10 @@ export function KeywordForm({ websiteId, onKeywordAdded, onCancel }: KeywordForm
       const { data, error } = await supabase
         .from('keywords')
         .insert({
-          website_id: websiteId,
+          website_id: websiteId as any,
           keyword: keyword.trim(),
           importance: parseInt(importance)
-        })
+        } as any)
         .select();
         
       if (error) throw error;
@@ -79,7 +79,7 @@ export function KeywordForm({ websiteId, onKeywordAdded, onCancel }: KeywordForm
       // Insert mock rankings
       const { error: rankingsError } = await supabase
         .from('rankings')
-        .insert(mockRankings);
+        .insert(mockRankings as any);
       
       if (rankingsError) {
         console.error('Error adding mock rankings:', rankingsError);
