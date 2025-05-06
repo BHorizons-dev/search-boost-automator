@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import {
   Dialog,
@@ -54,7 +53,7 @@ export function ClientForm({ onClientAdded, onCancel, clientData }: ClientFormPr
         throw new Error('You must be logged in to add a client');
       }
 
-      const clientData = {
+      const clientDataToInsert = {
         name: name.trim(),
         email: email.trim() || null,
         phone: phone.trim() || null,
@@ -65,7 +64,7 @@ export function ClientForm({ onClientAdded, onCancel, clientData }: ClientFormPr
       // Insert into clients table with properly typed data
       const { error } = await supabase
         .from('clients')
-        .insert(clientData);
+        .insert(clientDataToInsert);
         
       if (error) throw error;
       

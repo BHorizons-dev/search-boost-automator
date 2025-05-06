@@ -76,9 +76,9 @@ export const supabase = createClient<ExtendedDatabase>(SUPABASE_URL, SUPABASE_PU
     persistSession: true,
     autoRefreshToken: true,
   },
-  // Update schema to match what the Supabase instance is expecting (api instead of public)
+  // Update schema to match what the Supabase instance is expecting (public instead of api)
   db: {
-    schema: 'api'
+    schema: 'public'
   },
   // Remove any problematic headers
   global: {

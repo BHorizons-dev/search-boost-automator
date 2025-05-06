@@ -20,11 +20,16 @@ interface TopNavProps {
   onMenuClick?: () => void;
 }
 
+interface UserProfile {
+  first_name: string | null;
+  last_name: string | null;
+}
+
 export function TopNav({ onMenuClick }: TopNavProps) {
   const { session, signOut } = useAuth();
   const [profileDebugInfo, setProfileDebugInfo] = React.useState<string | null>(null);
   
-  const { data: profile, error: profileError } = useQuery({
+  const { data: profile, error: profileError } = useQuery<UserProfile | null>({
     queryKey: ['user-profile', session?.user?.id],
     queryFn: async () => {
       if (!session?.user?.id) return null;

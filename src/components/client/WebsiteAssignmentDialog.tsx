@@ -28,6 +28,13 @@ interface WebsiteAssignmentDialogProps {
   onCancel: () => void;
 }
 
+// Define a type for the website data
+type Website = {
+  id: string;
+  name: string;
+  domain: string;
+}
+
 export function WebsiteAssignmentDialog({ 
   clientId, 
   onWebsitesAssigned, 
@@ -52,7 +59,7 @@ export function WebsiteAssignmentDialog({
   });
 
   // Fetch websites
-  const { data: websites, isLoading: isLoadingWebsites } = useQuery({
+  const { data: websites, isLoading: isLoadingWebsites } = useQuery<Website[]>({
     queryKey: ['websites'],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -66,7 +73,7 @@ export function WebsiteAssignmentDialog({
   });
 
   // Fetch existing assignments
-  const { data: existingAssignments, isLoading: isLoadingAssignments } = useQuery({
+  const { data: existingAssignments, isLoading: isLoadingAssignments } = useQuery<string[]>({
     queryKey: ['client-websites', clientId],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -75,6 +82,7 @@ export function WebsiteAssignmentDialog({
         .eq('client_id', clientId);
       
       if (error) throw error;
+      // Use optional chaining and nullish coalescing for safety
       return data?.map(item => item.website_id) || [];
     }
   });
