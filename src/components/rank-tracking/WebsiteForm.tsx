@@ -11,8 +11,10 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { useToast } from '@/components/ui/use-toast';
+import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
-import { toast } from '@/components/ui/use-toast';
+import { useState } from 'react';
 
 interface WebsiteFormProps {
   onWebsiteAdded: () => void;
@@ -20,99 +22,63 @@ interface WebsiteFormProps {
 }
 
 export function WebsiteForm({ onWebsiteAdded, onCancel }: WebsiteFormProps) {
-  const [name, setName] = React.useState('');
-  const [domain, setDomain] = React.useState('');
-  const [isSubmitting, setIsSubmitting] = React.useState(false);
-  const [debugInfo, setDebugInfo] = React.useState<string | null>(null);
+  const { toast } = useToast();
+  const { session } = useAuth();
+  const [name, setName] = useState('');
+  const [domain, setDomain] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!name.trim() || !domain.trim()) {
+    if (!name || !domain) {
       toast({
         title: 'Validation Error',
-        description: 'Please fill in all required fields.',
+        description: 'Please enter a name and domain.',
         variant: 'destructive',
       });
       return;
     }
     
+    if (!session?.user?.id) {
+      toast({
+        title: 'Authentication Error',
+        description: 'You must be logged in to add a website.',
+        variant: 'destructive',
+      });
+      return;
+    }
+    
+    // Clean up domain input - ensure it starts with a protocol
+    let cleanDomain = domain.trim().toLowerCase();
+    if (!cleanDomain.startsWith('http://') && !cleanDomain.startsWith('https://')) {
+      cleanDomain = 'https://' + cleanDomain;
+    }
+    
     setIsSubmitting(true);
-    setDebugInfo(null);
-    
-    // Format domain (remove protocol if present)
-    let formattedDomain = domain.trim().toLowerCase();
-    if (formattedDomain.startsWith('http://')) {
-      formattedDomain = formattedDomain.substring(7);
-    } else if (formattedDomain.startsWith('https://')) {
-      formattedDomain = formattedDomain.substring(8);
-    }
-    
-    // Remove trailing slash
-    if (formattedDomain.endsWith('/')) {
-      formattedDomain = formattedDomain.slice(0, -1);
-    }
     
     try {
-      // Get the current user
-      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-      
-      if (sessionError) {
-        console.error('Session error:', sessionError);
-        throw new Error('Error getting session: ' + sessionError.message);
-      }
-      
-      if (!session || !session.user) {
-        throw new Error('You must be logged in to add a website');
-      }
-
-      console.log('Creating website with user_id:', session.user.id);
-      setDebugInfo(`User ID: ${session.user.id}`);
-      
-      // Insert with explicit schema configuration
-      const { data, error } = await supabase
+      const { error } = await supabase
         .from('websites')
         .insert({
           name: name.trim(),
-          domain: formattedDomain,
+          domain: cleanDomain,
           user_id: session.user.id
-        })
-        .select();
+        } as any);
         
-      if (error) {
-        console.error('Insert error:', error);
-        setDebugInfo(prev => `${prev || ''}\nInsert error: ${JSON.stringify(error)}`);
-        
-        // Handle schema error specifically
-        if (error.code === 'PGRST106') {
-          toast({
-            title: 'Schema Configuration Error',
-            description: 'There is an issue with the database configuration. Please contact support.',
-            variant: 'destructive',
-          });
-          throw new Error(`Schema configuration issue: ${error.message}`);
-        } else {
-          throw error;
-        }
-      }
-
-      console.log('Website added successfully:', data);
+      if (error) throw error;
       
       toast({
         title: 'Website Added',
-        description: `${name} has been added successfully.`,
+        description: `"${name}" has been added successfully.`,
       });
       
       onWebsiteAdded();
     } catch (error: any) {
       console.error('Error adding website:', error);
-      
-      // Enhanced error message with more helpful information
-      let errorMessage = error.message || 'An unknown error occurred';
-      
       toast({
         title: 'Error Adding Website',
-        description: errorMessage,
+        description: error.message || 'An unknown error occurred.',
         variant: 'destructive',
       });
     } finally {
@@ -134,14 +100,14 @@ export function WebsiteForm({ onWebsiteAdded, onCancel }: WebsiteFormProps) {
           <div className="grid gap-4 py-4">
             <div className="grid grid-cols-4 items-center gap-4">
               <Label htmlFor="name" className="text-right">
-                Website Name
+                Name
               </Label>
               <Input
                 id="name"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 className="col-span-3"
-                placeholder="My Client Website"
+                placeholder="My Company Website"
                 required
               />
             </div>
@@ -155,17 +121,10 @@ export function WebsiteForm({ onWebsiteAdded, onCancel }: WebsiteFormProps) {
                 value={domain}
                 onChange={(e) => setDomain(e.target.value)}
                 className="col-span-3"
-                placeholder="example.com"
+                placeholder="mycompany.com"
                 required
               />
             </div>
-
-            {debugInfo && (
-              <div className="text-xs text-red-500 bg-red-50 p-2 rounded mt-2">
-                <p>Debug info (please share this if reporting an issue):</p>
-                <pre className="whitespace-pre-wrap">{debugInfo}</pre>
-              </div>
-            )}
           </div>
           
           <DialogFooter>

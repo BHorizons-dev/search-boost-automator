@@ -18,15 +18,25 @@ interface RankingHistoryChartProps {
   keywordId: string;
 }
 
+interface KeywordData {
+  keyword: string;
+}
+
+interface RankingData {
+  search_engine: string;
+  position: number;
+  recorded_at: string;
+}
+
 export function RankingHistoryChart({ keywordId }: RankingHistoryChartProps) {
-  const { data: keyword } = useQuery({
+  const { data: keyword } = useQuery<KeywordData | null>({
     queryKey: ['keyword', keywordId],
     queryFn: async () => {
       try {
         const { data, error } = await supabase
           .from('keywords')
           .select('keyword')
-          .eq('id', keywordId)
+          .eq('id', keywordId as any)
           .single();
           
         if (error) {
@@ -39,7 +49,7 @@ export function RankingHistoryChart({ keywordId }: RankingHistoryChartProps) {
           return { keyword: '' };
         }
         
-        return data;
+        return data as KeywordData;
       } catch (err: any) {
         console.error('Exception fetching keyword:', err);
         toast({
@@ -54,14 +64,14 @@ export function RankingHistoryChart({ keywordId }: RankingHistoryChartProps) {
     retryDelay: 1000
   });
 
-  const { data: rankingHistory, isLoading } = useQuery({
+  const { data: rankingHistory, isLoading } = useQuery<RankingData[]>({
     queryKey: ['ranking-history', keywordId],
     queryFn: async () => {
       try {
         const { data, error } = await supabase
           .from('rankings')
           .select('search_engine, position, recorded_at')
-          .eq('keyword_id', keywordId)
+          .eq('keyword_id', keywordId as any)
           .order('recorded_at', { ascending: true });
           
         if (error) {
@@ -74,7 +84,7 @@ export function RankingHistoryChart({ keywordId }: RankingHistoryChartProps) {
           return [];
         }
         
-        return data || [];
+        return (data || []) as RankingData[];
       } catch (err: any) {
         console.error('Exception fetching ranking history:', err);
         toast({
@@ -97,6 +107,8 @@ export function RankingHistoryChart({ keywordId }: RankingHistoryChartProps) {
     const dateMap: Record<string, any> = {};
     
     rankingHistory.forEach(record => {
+      if (!record.recorded_at) return; // Skip records without a date
+      
       const date = new Date(record.recorded_at).toLocaleDateString();
       
       if (!dateMap[date]) {
@@ -104,7 +116,9 @@ export function RankingHistoryChart({ keywordId }: RankingHistoryChartProps) {
       }
       
       // Add the position for this search engine
-      dateMap[date][record.search_engine] = record.position;
+      if (record.search_engine) {
+        dateMap[date][record.search_engine] = record.position;
+      }
     });
     
     // Convert the map to an array for the chart

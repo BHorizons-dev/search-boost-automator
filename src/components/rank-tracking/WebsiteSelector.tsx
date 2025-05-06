@@ -15,6 +15,13 @@ interface WebsiteSelectorProps {
   setSelectedWebsiteId: (id: string | null) => void;
 }
 
+// Define a type for Website
+interface Website {
+  id: string;
+  name: string;
+  domain: string;
+}
+
 // Define a type for Supabase errors which includes the code property
 interface SupabaseError extends Error {
   code?: string;
@@ -32,7 +39,7 @@ export function WebsiteSelector({ selectedWebsiteId, setSelectedWebsiteId }: Web
     isLoading, 
     error,
     refetch: refetchWebsites 
-  } = useQuery({
+  } = useQuery<Website[]>({
     queryKey: ['websites'],
     queryFn: async () => {
       setDebugInfo(null);
@@ -81,7 +88,7 @@ export function WebsiteSelector({ selectedWebsiteId, setSelectedWebsiteId }: Web
         
         console.log('Websites data:', data);
         setDebugInfo(prev => `${prev ? prev + '\n' : ''}Websites fetched: ${data?.length || 0}`);
-        return data || [];
+        return (data || []) as Website[];
       } catch (error: any) {
         console.error('Caught error fetching websites:', error);
         setDebugInfo(prev => `${prev ? prev + '\n' : ''}Exception: ${error.message || 'Unknown error'}`);

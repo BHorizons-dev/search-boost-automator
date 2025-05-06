@@ -59,6 +59,84 @@ interface ExtendedDatabase extends SupabaseDatabase {
           created_at?: string | null;
         };
       };
+      websites: {
+        Row: {
+          id: string;
+          name: string;
+          domain: string;
+          user_id: string;
+          created_at: string | null;
+          updated_at: string | null;
+        };
+        Insert: {
+          id?: string;
+          name: string;
+          domain: string;
+          user_id: string;
+          created_at?: string | null;
+          updated_at?: string | null;
+        };
+        Update: {
+          id?: string;
+          name?: string;
+          domain?: string;
+          user_id?: string;
+          created_at?: string | null;
+          updated_at?: string | null;
+        };
+      };
+      keywords: {
+        Row: {
+          id: string;
+          keyword: string;
+          website_id: string;
+          importance: number | null;
+          created_at: string | null;
+          updated_at: string | null;
+        };
+        Insert: {
+          id?: string;
+          keyword: string;
+          website_id: string;
+          importance?: number | null;
+          created_at?: string | null;
+          updated_at?: string | null;
+        };
+        Update: {
+          id?: string;
+          keyword?: string;
+          website_id?: string;
+          importance?: number | null;
+          created_at?: string | null;
+          updated_at?: string | null;
+        };
+      };
+      rankings: {
+        Row: {
+          id: string;
+          keyword_id: string;
+          position: number;
+          search_engine: string;
+          url: string | null;
+          recorded_at: string | null;
+        };
+        Insert: {
+          id?: string;
+          keyword_id: string;
+          position: number;
+          search_engine: string;
+          url?: string | null;
+          recorded_at?: string | null;
+        };
+        Update: {
+          id?: string;
+          keyword_id?: string;
+          position?: number;
+          search_engine?: string;
+          url?: string | null;
+          recorded_at?: string | null;
+        };
+      };
     } & SupabaseDatabase['public']['Tables'];
     Views: SupabaseDatabase['public']['Views'];
     Functions: SupabaseDatabase['public']['Functions'];

@@ -55,6 +55,10 @@ export function KeywordForm({ websiteId, onKeywordAdded, onCancel }: KeywordForm
       if (error) throw error;
       
       // Add mock initial rankings for this keyword
+      if (!data || !data[0]) {
+        throw new Error('Failed to retrieve the newly created keyword ID');
+      }
+      
       const keywordId = data[0].id;
       const mockRankings = [];
       
