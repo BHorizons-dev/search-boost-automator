@@ -14,6 +14,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { useAuth } from "@/contexts/AuthContext";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { toast } from "@/components/ui/use-toast";
 
 interface TopNavProps {
   onMenuClick?: () => void;
@@ -22,7 +23,7 @@ interface TopNavProps {
 export function TopNav({ onMenuClick }: TopNavProps) {
   const { session, signOut } = useAuth();
   
-  const { data: profile } = useQuery({
+  const { data: profile, error: profileError } = useQuery({
     queryKey: ['user-profile', session?.user?.id],
     queryFn: async () => {
       if (!session?.user?.id) return null;
@@ -30,14 +31,26 @@ export function TopNav({ onMenuClick }: TopNavProps) {
       try {
         console.log('Fetching user profile for ID:', session.user.id);
         
+        // Display user email while we attempt to get profile
+        const userEmail = session.user.email;
+        console.log('User email:', userEmail);
+        
         const { data, error } = await supabase
           .from('user_profiles')
           .select('first_name, last_name')
           .eq('id', session.user.id)
-          .single();
+          .maybeSingle();
         
         if (error) {
           console.error('Error fetching profile:', error);
+          // Don't throw here, we'll fall back to email display
+          if (error.code === 'PGRST106') {
+            toast({
+              title: "Profile data unavailable",
+              description: "Using email as display name instead.",
+              variant: "default"
+            });
+          }
           return null;
         }
         
@@ -49,8 +62,8 @@ export function TopNav({ onMenuClick }: TopNavProps) {
       }
     },
     enabled: !!session?.user?.id,
-    retry: 3,
-    retryDelay: 1000
+    retry: 1,
+    staleTime: 300000 // 5 minutes
   });
 
   const getInitials = () => {
@@ -66,6 +79,8 @@ export function TopNav({ onMenuClick }: TopNavProps) {
     }
     return session?.user?.email || 'User';
   };
+
+  console.log("Current session user:", session?.user);
 
   return (
     <div className="border-b">

@@ -75,5 +75,9 @@ export const supabase = createClient<ExtendedDatabase>(SUPABASE_URL, SUPABASE_PU
   auth: {
     persistSession: true,
     autoRefreshToken: true,
+  },
+  // Fix for PGRST106 error - specify schema correctly
+  db: {
+    schema: 'public',
   }
 });

@@ -4,7 +4,7 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue 
 } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
-import { Plus } from 'lucide-react';
+import { Plus, RefreshCw } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/components/ui/use-toast';
@@ -17,6 +17,7 @@ interface WebsiteSelectorProps {
 
 export function WebsiteSelector({ selectedWebsiteId, setSelectedWebsiteId }: WebsiteSelectorProps) {
   const [showWebsiteForm, setShowWebsiteForm] = React.useState(false);
+  const [debugInfo, setDebugInfo] = React.useState<string | null>(null);
 
   // Fetch websites
   const { 
@@ -27,8 +28,27 @@ export function WebsiteSelector({ selectedWebsiteId, setSelectedWebsiteId }: Web
   } = useQuery({
     queryKey: ['websites'],
     queryFn: async () => {
+      setDebugInfo(null);
       try {
         console.log('Fetching websites...');
+        
+        // Get current auth session to verify user is logged in
+        const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
+        if (sessionError) {
+          console.error('Session error:', sessionError);
+          setDebugInfo(`Session error: ${JSON.stringify(sessionError)}`);
+          throw new Error(`Session error: ${sessionError.message}`);
+        }
+        
+        if (!sessionData.session?.user) {
+          const authError = new Error('User not authenticated');
+          setDebugInfo('User not authenticated');
+          throw authError;
+        }
+        
+        console.log('User ID:', sessionData.session.user.id);
+        setDebugInfo(prev => `${prev ? prev + '\n' : ''}User ID: ${sessionData.session.user.id}`);
+        
         const { data, error } = await supabase
           .from('websites')
           .select('*')
@@ -36,19 +56,17 @@ export function WebsiteSelector({ selectedWebsiteId, setSelectedWebsiteId }: Web
           
         if (error) {
           console.error('Error fetching websites:', error);
+          setDebugInfo(prev => `${prev ? prev + '\n' : ''}Supabase error: ${JSON.stringify(error)}`);
           throw error;
         }
         
         console.log('Websites data:', data);
+        setDebugInfo(prev => `${prev ? prev + '\n' : ''}Websites fetched: ${data?.length || 0}`);
         return data || [];
       } catch (error: any) {
         console.error('Caught error fetching websites:', error);
-        toast({
-          title: 'Error fetching websites',
-          description: error.message || 'Failed to fetch websites',
-          variant: 'destructive'
-        });
-        return [];
+        setDebugInfo(prev => `${prev ? prev + '\n' : ''}Exception: ${error.message || 'Unknown error'}`);
+        throw error;
       }
     },
     retry: 3,
@@ -71,51 +89,63 @@ export function WebsiteSelector({ selectedWebsiteId, setSelectedWebsiteId }: Web
     return <div>Loading websites...</div>;
   }
 
-  if (error) {
-    return (
-      <div className="flex flex-col gap-3">
-        <div className="text-red-500">
-          Error loading websites. Please check your connection and authentication.
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center gap-3">
+        <div className="flex-1">
+          {websites?.length > 0 ? (
+            <Select 
+              value={selectedWebsiteId || ''}
+              onValueChange={(value) => setSelectedWebsiteId(value)}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Select a website" />
+              </SelectTrigger>
+              <SelectContent>
+                {websites.map((website) => (
+                  <SelectItem key={website.id} value={website.id}>
+                    {website.name} ({website.domain})
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          ) : (
+            <div className="text-muted-foreground">No websites found. Add your first website.</div>
+          )}
         </div>
-        <Button variant="outline" onClick={() => refetchWebsites()}>
-          Try Again
-        </Button>
+        
         <Button variant="outline" onClick={() => setShowWebsiteForm(true)}>
           <Plus className="h-4 w-4 mr-2" />
           Add Website
         </Button>
-      </div>
-    );
-  }
-
-  return (
-    <div className="flex items-center gap-3">
-      <div className="flex-1">
-        {websites?.length > 0 ? (
-          <Select 
-            value={selectedWebsiteId || ''}
-            onValueChange={(value) => setSelectedWebsiteId(value)}
-          >
-            <SelectTrigger>
-              <SelectValue placeholder="Select a website" />
-            </SelectTrigger>
-            <SelectContent>
-              {websites.map((website) => (
-                <SelectItem key={website.id} value={website.id}>
-                  {website.name} ({website.domain})
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        ) : (
-          <div className="text-muted-foreground">No websites found. Add your first website.</div>
-        )}
+        
+        <Button 
+          variant="ghost" 
+          size="icon" 
+          onClick={() => refetchWebsites()} 
+          title="Refresh websites"
+        >
+          <RefreshCw className="h-4 w-4" />
+        </Button>
       </div>
       
-      <Button variant="outline" onClick={() => setShowWebsiteForm(true)}>
-        <Plus className="h-4 w-4 mr-2" />
-        Add Website
-      </Button>
+      {error && (
+        <div className="bg-red-50 p-3 rounded border border-red-200 text-sm">
+          <p className="font-medium text-red-800 mb-1">Error loading websites</p>
+          <p className="text-red-600">{(error as Error).message}</p>
+          {debugInfo && (
+            <div className="mt-2 p-2 bg-white/50 rounded text-xs">
+              <p className="font-mono">Debug info:</p>
+              <pre className="whitespace-pre-wrap overflow-auto max-h-32">{debugInfo}</pre>
+            </div>
+          )}
+          <div className="mt-2 flex gap-2">
+            <Button size="sm" variant="outline" onClick={() => refetchWebsites()}>
+              Try Again
+            </Button>
+          </div>
+        </div>
+      )}
       
       {showWebsiteForm && (
         <WebsiteForm 
