@@ -39,7 +39,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         console.error('Unexpected error during session check:', error);
         toast({
           title: 'Connection Error',
-          description: error.message || 'Failed to connect to authentication service',
+          description: 'Failed to connect to the Supabase project. Please check your project credentials.',
           variant: 'destructive',
         });
       } finally {
@@ -88,7 +88,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (error.message === 'Failed to fetch') {
         toast({
           title: 'Connection Error',
-          description: 'Unable to connect to authentication service. Please check your internet connection.',
+          description: 'Unable to connect to authentication service. Please check your Supabase project configuration.',
           variant: 'destructive',
         });
       }
@@ -128,7 +128,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (error.message === 'Failed to fetch') {
         toast({
           title: 'Connection Error',
-          description: 'Unable to connect to authentication service. Please check your internet connection.',
+          description: 'Unable to connect to authentication service. Please check your Supabase project configuration.',
           variant: 'destructive',
         });
       }

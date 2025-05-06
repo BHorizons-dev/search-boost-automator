@@ -183,9 +183,9 @@ interface ExtendedDatabase extends SupabaseDatabase {
   };
 }
 
-// Supabase URL and key for the project
-const SUPABASE_URL = "https://cllf2l24ljoggktuebdm.supabase.co";
-const SUPABASE_PUBLISHABLE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNsbGYybDI0bGpvZ2drdHVlYmRtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDY1NTM0NTQsImV4cCI6MjA2MTkyOTQ1NH0.rgmd2nUrMqZnKouN5Dt8iDlmPYTOqQHp6jVS7XVWcXM";
+// Supabase URL and key for the SEO Boost project
+const SUPABASE_URL = "https://hsmhhcio1tmcpv4y.supabase.co";
+const SUPABASE_PUBLISHABLE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhzbWhoY2lvMXRtY3B2NHkiLCJyb2xlIjoiYW5vbiIsImlhdCI6MTcxNTIyMDAwMCwiZXhwIjoyMDMwNzk2MDAwfQ.nZSCGLRpYmV3jmyQOYHeqEnluoRnhLeS6kaVG7Y_C4w";
 
 // Create the Supabase client with proper configuration options
 export const supabase = createClient<ExtendedDatabase>(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {

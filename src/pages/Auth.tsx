@@ -7,10 +7,13 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Label } from '@/components/ui/label';
+import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
+import { ExclamationTriangleIcon } from '@radix-ui/react-icons';
 
 const Auth = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [authError, setAuthError] = useState<string | null>(null);
   const { signIn, signUp, isLoading, session } = useAuth();
   const navigate = useNavigate();
 
@@ -22,20 +25,24 @@ const Auth = () => {
 
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
+    setAuthError(null);
     try {
       await signIn(email, password);
       navigate('/');
-    } catch (error) {
-      // Error is handled in the signIn function
+    } catch (error: any) {
+      setAuthError(error.message || 'Failed to sign in');
+      console.error('Auth error:', error);
     }
   };
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
+    setAuthError(null);
     try {
       await signUp(email, password);
-    } catch (error) {
-      // Error is handled in the signUp function
+    } catch (error: any) {
+      setAuthError(error.message || 'Failed to sign up');
+      console.error('Auth error:', error);
     }
   };
 
@@ -46,6 +53,17 @@ const Auth = () => {
           <CardTitle className="text-2xl">SEO Boost Automator</CardTitle>
           <CardDescription>Sign in or create an account to get started</CardDescription>
         </CardHeader>
+        
+        {authError && (
+          <div className="px-6">
+            <Alert variant="destructive" className="mb-4">
+              <ExclamationTriangleIcon className="h-4 w-4" />
+              <AlertTitle>Authentication Error</AlertTitle>
+              <AlertDescription>{authError}</AlertDescription>
+            </Alert>
+          </div>
+        )}
+        
         <Tabs defaultValue="signin" className="w-full">
           <TabsList className="grid w-full grid-cols-2">
             <TabsTrigger value="signin">Sign In</TabsTrigger>
