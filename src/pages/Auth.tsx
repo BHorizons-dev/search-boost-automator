@@ -8,7 +8,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Label } from '@/components/ui/label';
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
-import { ExclamationTriangleIcon } from '@radix-ui/react-icons';
+import { AlertTriangle } from 'lucide-react';
 
 const Auth = () => {
   const [email, setEmail] = useState('');
@@ -57,7 +57,7 @@ const Auth = () => {
         {authError && (
           <div className="px-6">
             <Alert variant="destructive" className="mb-4">
-              <ExclamationTriangleIcon className="h-4 w-4" />
+              <AlertTriangle className="h-4 w-4" />
               <AlertTitle>Authentication Error</AlertTitle>
               <AlertDescription>{authError}</AlertDescription>
             </Alert>
