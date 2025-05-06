@@ -29,10 +29,19 @@ interface WebsiteAssignmentDialogProps {
 }
 
 // Define a type for the website data
-type Website = {
+interface Website {
   id: string;
   name: string;
   domain: string;
+}
+
+// Define a type for the client data
+interface Client {
+  id: string;
+  name: string;
+  email?: string | null;
+  phone?: string | null;
+  company?: string | null;
 }
 
 export function WebsiteAssignmentDialog({ 
@@ -44,7 +53,7 @@ export function WebsiteAssignmentDialog({
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Fetch client data
-  const { data: client } = useQuery({
+  const { data: client } = useQuery<Client | null>({
     queryKey: ['client', clientId],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -54,7 +63,7 @@ export function WebsiteAssignmentDialog({
         .single();
       
       if (error) throw error;
-      return data;
+      return data as Client;
     }
   });
 
@@ -68,7 +77,7 @@ export function WebsiteAssignmentDialog({
         .order('name');
       
       if (error) throw error;
-      return data || [];
+      return (data || []) as Website[];
     }
   });
 
@@ -83,7 +92,7 @@ export function WebsiteAssignmentDialog({
       
       if (error) throw error;
       // Use optional chaining and nullish coalescing for safety
-      return data?.map(item => item.website_id) || [];
+      return (data?.map(item => item.website_id) || []) as string[];
     }
   });
   
@@ -141,7 +150,7 @@ export function WebsiteAssignmentDialog({
         
         const { error: addError } = await supabase
           .from('client_websites')
-          .insert(newAssignments);
+          .insert(newAssignments as any);
           
         if (addError) throw addError;
       }

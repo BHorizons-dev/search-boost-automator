@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import {
   Dialog,
@@ -53,7 +54,14 @@ export function ClientForm({ onClientAdded, onCancel, clientData }: ClientFormPr
         throw new Error('You must be logged in to add a client');
       }
 
-      const clientDataToInsert = {
+      // Define client data with proper typing to match the extended database interface
+      const clientDataToInsert: {
+        name: string;
+        email: string | null;
+        phone: string | null;
+        company: string | null;
+        user_id: string;
+      } = {
         name: name.trim(),
         email: email.trim() || null,
         phone: phone.trim() || null,
