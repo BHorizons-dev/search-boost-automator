@@ -144,9 +144,11 @@ export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABL
 // Custom type to simplify the type augmentation
 export type Table = keyof TablesSelect;
 
-// This is the improved type augmentation for the from method
+// Simplified type augmentation to avoid the complex type issues
 declare module '@supabase/supabase-js' {
-  interface SupabaseClient<Schema> {
-    from<T extends Table>(table: T): PostgrestQueryBuilder<Schema, TablesSelect[T], TablesInsert[T]>;
+  interface SupabaseClient<Schema extends any> {
+    from<T extends Table>(
+      table: T
+    ): PostgrestQueryBuilder<Schema, any, any>;
   }
 }

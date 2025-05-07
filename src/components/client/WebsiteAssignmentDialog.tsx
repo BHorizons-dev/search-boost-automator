@@ -43,56 +43,82 @@ export function WebsiteAssignmentDialog({
   const [selectedWebsites, setSelectedWebsites] = useState<string[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Fetch client data
-  const { data: client } = useQuery<Client>({
+  // Fetch client data with proper error handling
+  const { data: client } = useQuery({
     queryKey: ['client', clientId],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('clients')
-        .select('*')
-        .eq('id', clientId)
-        .single();
-      
-      if (error) throw error;
-      return data;
+      try {
+        const { data, error } = await supabase
+          .from('clients')
+          .select('*')
+          .eq('id', clientId)
+          .single();
+        
+        if (error) {
+          console.error('Error fetching client:', error);
+          throw error;
+        }
+        
+        return data as Client;
+      } catch (error) {
+        console.error('Error in client query:', error);
+        throw error;
+      }
     }
   });
 
-  // Fetch websites
-  const { data: websites, isLoading: isLoadingWebsites } = useQuery<Website[]>({
+  // Fetch websites with proper error handling
+  const { data: websites, isLoading: isLoadingWebsites } = useQuery({
     queryKey: ['websites'],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('websites')
-        .select('*')
-        .order('name');
-      
-      if (error) throw error;
-      return data || [];
+      try {
+        const { data, error } = await supabase
+          .from('websites')
+          .select('*')
+          .order('name');
+        
+        if (error) {
+          console.error('Error fetching websites:', error);
+          throw error;
+        }
+        
+        return (data || []) as Website[];
+      } catch (error) {
+        console.error('Error in websites query:', error);
+        throw error;
+      }
     }
   });
 
-  // Fetch existing assignments
-  const { data: existingAssignments, isLoading: isLoadingAssignments } = useQuery<string[]>({
+  // Fetch existing assignments with proper error handling
+  const { data: existingAssignments, isLoading: isLoadingAssignments } = useQuery({
     queryKey: ['client-websites', clientId],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('client_websites')
-        .select('website_id')
-        .eq('client_id', clientId);
-      
-      if (error) throw error;
-      
-      // Extract website IDs safely
-      if (data) {
-        return data.map(row => {
-          if (row && typeof row === 'object' && row !== null && 'website_id' in row) {
-            return row.website_id;
-          }
-          return '';
-        }).filter(id => id !== '');
+      try {
+        const { data, error } = await supabase
+          .from('client_websites')
+          .select('website_id')
+          .eq('client_id', clientId);
+        
+        if (error) {
+          console.error('Error fetching assignments:', error);
+          throw error;
+        }
+        
+        // Extract website IDs safely
+        if (data) {
+          return data.map(row => {
+            if (row && typeof row === 'object' && row !== null && 'website_id' in row) {
+              return row.website_id;
+            }
+            return '';
+          }).filter(id => id !== '');
+        }
+        return [] as string[];
+      } catch (error) {
+        console.error('Error in assignments query:', error);
+        throw error;
       }
-      return [];
     }
   });
   
