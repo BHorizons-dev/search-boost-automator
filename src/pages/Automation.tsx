@@ -100,9 +100,10 @@ const Automation = () => {
     queryFn: async () => {
       if (!selectedWebsiteId) return [];
       
-      const { data, error } = await tasksTable()
+      const { data, error } = await supabase
+        .from('tasks')
         .select('*')
-        .eq('website_id', selectedWebsiteId);
+        .eq('website_id', selectedWebsiteId) as any;
         
       if (error) {
         toast({
@@ -154,8 +155,9 @@ const Automation = () => {
         website_id: selectedWebsiteId
       };
 
-      const { error } = await tasksTable()
-        .insert(taskToInsert);
+      const { error } = await supabase
+        .from('tasks')
+        .insert(taskToInsert) as any;
 
       if (error) throw error;
 
@@ -191,9 +193,10 @@ const Automation = () => {
         updateData.completed_at = new Date().toISOString();
       }
       
-      const { error } = await tasksTable()
+      const { error } = await supabase
+        .from('tasks')
         .update(updateData)
-        .eq('id', taskId);
+        .eq('id', taskId) as any;
 
       if (error) throw error;
 
@@ -214,9 +217,10 @@ const Automation = () => {
 
   const deleteTask = async (taskId: string) => {
     try {
-      const { error } = await tasksTable()
+      const { error } = await supabase
+        .from('tasks')
         .delete()
-        .eq('id', taskId);
+        .eq('id', taskId) as any;
 
       if (error) throw error;
 
