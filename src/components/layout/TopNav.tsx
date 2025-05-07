@@ -1,3 +1,4 @@
+
 import React from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -60,7 +61,7 @@ export function TopNav({ onMenuClick }: TopNavProps) {
         }
         
         console.log('Profile data:', data);
-        return data;
+        return data as UserProfile;
       } catch (error) {
         console.error('Exception fetching profile:', error);
         setProfileDebugInfo(`Exception: ${(error as Error).message}`);

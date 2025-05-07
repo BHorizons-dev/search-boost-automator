@@ -29,11 +29,9 @@ interface WebsiteAssignmentDialogProps {
   onCancel: () => void;
 }
 
-// Define a type for the website data
-type Website = TablesSelect['websites'];
-
-// Define a type for the client data
+// Define types for our data
 type Client = TablesSelect['clients'];
+type Website = TablesSelect['websites'];
 
 export function WebsiteAssignmentDialog({ 
   clientId, 
@@ -44,7 +42,7 @@ export function WebsiteAssignmentDialog({
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Fetch client data with proper error handling
-  const { data: client } = useQuery({
+  const { data: client } = useQuery<Client | null>({
     queryKey: ['client', clientId],
     queryFn: async () => {
       try {
@@ -62,13 +60,13 @@ export function WebsiteAssignmentDialog({
         return data as Client;
       } catch (error) {
         console.error('Error in client query:', error);
-        throw error;
+        return null;
       }
     }
   });
 
   // Fetch websites with proper error handling
-  const { data: websites, isLoading: isLoadingWebsites } = useQuery({
+  const { data: websites, isLoading: isLoadingWebsites } = useQuery<Website[]>({
     queryKey: ['websites'],
     queryFn: async () => {
       try {
@@ -85,13 +83,13 @@ export function WebsiteAssignmentDialog({
         return (data || []) as Website[];
       } catch (error) {
         console.error('Error in websites query:', error);
-        throw error;
+        return [];
       }
     }
   });
 
   // Fetch existing assignments with proper error handling
-  const { data: existingAssignments, isLoading: isLoadingAssignments } = useQuery({
+  const { data: existingAssignments, isLoading: isLoadingAssignments } = useQuery<string[]>({
     queryKey: ['client-websites', clientId],
     queryFn: async () => {
       try {
@@ -106,7 +104,7 @@ export function WebsiteAssignmentDialog({
         }
         
         // Extract website IDs safely
-        if (data) {
+        if (data && Array.isArray(data)) {
           return data.map(row => {
             if (row && typeof row === 'object' && row !== null && 'website_id' in row) {
               return row.website_id;
@@ -114,10 +112,10 @@ export function WebsiteAssignmentDialog({
             return '';
           }).filter(id => id !== '');
         }
-        return [] as string[];
+        return [];
       } catch (error) {
         console.error('Error in assignments query:', error);
-        throw error;
+        return [];
       }
     }
   });
