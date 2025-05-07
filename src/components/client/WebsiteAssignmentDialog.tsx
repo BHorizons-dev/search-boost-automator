@@ -21,7 +21,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/components/ui/use-toast';
 import { useQuery } from '@tanstack/react-query';
-import type { TablesSelect } from '@/integrations/supabase/client';
+import type { TablesSelect, TablesInsert } from '@/integrations/supabase/client';
 
 interface WebsiteAssignmentDialogProps {
   clientId: string;
@@ -32,6 +32,7 @@ interface WebsiteAssignmentDialogProps {
 // Define types for our data
 type Client = TablesSelect['clients'];
 type Website = TablesSelect['websites'];
+type ClientWebsite = TablesInsert['client_websites'];
 
 export function WebsiteAssignmentDialog({ 
   clientId, 
@@ -167,7 +168,7 @@ export function WebsiteAssignmentDialog({
       
       // Add new assignments
       if (websitesToAdd.length > 0) {
-        const newAssignments = websitesToAdd.map(websiteId => ({
+        const newAssignments: ClientWebsite[] = websitesToAdd.map(websiteId => ({
           client_id: clientId,
           website_id: websiteId
         }));

@@ -49,7 +49,7 @@ export function RankingHistoryChart({ keywordId }: RankingHistoryChartProps) {
           return { keyword: '' };
         }
         
-        return data;
+        return data as KeywordData;
       } catch (err: any) {
         console.error('Exception fetching keyword:', err);
         toast({
@@ -84,7 +84,7 @@ export function RankingHistoryChart({ keywordId }: RankingHistoryChartProps) {
           return [];
         }
         
-        return data || [];
+        return (data || []) as RankingData[];
       } catch (err: any) {
         console.error('Exception fetching ranking history:', err);
         toast({

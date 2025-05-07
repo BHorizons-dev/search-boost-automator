@@ -1,5 +1,7 @@
+// Add correct type handling for KeywordForm component
 
-import React from 'react';
+// First, let's import any files we need to reference but don't need to show here:
+import React, { useState } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -8,14 +10,19 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { 
-  Select, SelectContent, SelectItem, SelectTrigger, SelectValue 
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue
 } from '@/components/ui/select';
+import { Button } from '@/components/ui/button';
+import { useToast } from '@/components/ui/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import { toast } from '@/components/ui/use-toast';
+import type { TablesInsert } from '@/integrations/supabase/client';
 
 interface KeywordFormProps {
   websiteId: string;
@@ -23,84 +30,75 @@ interface KeywordFormProps {
   onCancel: () => void;
 }
 
-export function KeywordForm({ websiteId, onKeywordAdded, onCancel }: KeywordFormProps) {
-  const [keyword, setKeyword] = React.useState('');
-  const [importance, setImportance] = React.useState('3');
-  const [isSubmitting, setIsSubmitting] = React.useState(false);
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+// We'll need to handle the data correctly
+export const handleWebsiteKeywordSubmit = async (websiteId: string, keyword: string, importance: number) => {
+  try {
+    const newKeyword: TablesInsert['keywords'] = {
+      website_id: websiteId,
+      keyword: keyword.trim(),
+      importance: importance
+    };
     
-    if (!keyword.trim()) {
+    const { data, error } = await supabase
+      .from('keywords')
+      .insert(newKeyword)
+      .select('id')
+      .single();
+      
+    if (error) throw error;
+    
+    return { success: true, data };
+  } catch (error: any) {
+    console.error('Error adding keyword:', error);
+    return { success: false, error: error.message || 'Unknown error' };
+  }
+};
+
+export function KeywordForm({ websiteId, onKeywordAdded, onCancel }: KeywordFormProps) {
+  const { toast } = useToast();
+  const [newKeyword, setNewKeyword] = useState('');
+  const [keywordImportance, setKeywordImportance] = useState('1');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const handleAddKeyword = async () => {
+    if (!websiteId || !newKeyword.trim()) {
       toast({
         title: 'Validation Error',
-        description: 'Please enter a keyword.',
-        variant: 'destructive',
+        description: 'Please enter a keyword',
+        variant: 'destructive'
       });
       return;
     }
-    
+
     setIsSubmitting(true);
-    
+
+    const importance = parseInt(keywordImportance);
+
     try {
-      const { data, error } = await supabase
-        .from('keywords')
-        .insert({
-          website_id: websiteId as any,
-          keyword: keyword.trim(),
-          importance: parseInt(importance)
-        } as any)
-        .select();
+      const result = await handleWebsiteKeywordSubmit(websiteId, newKeyword, importance);
+
+      if (result.success) {
+        toast({
+          title: 'Keyword Added',
+          description: `"${newKeyword}" has been added successfully.`
+        });
         
-      if (error) throw error;
-      
-      // Add mock initial rankings for this keyword
-      if (!data || !data[0]) {
-        throw new Error('Failed to retrieve the newly created keyword ID');
-      }
-      
-      const keywordId = data[0].id;
-      const mockRankings = [];
-      
-      // Create mock rankings for each search engine
-      const searchEngines = ['google', 'bing', 'yahoo'];
-      const basePosition = Math.floor(Math.random() * 15) + 1; // Random position between 1-15
-      
-      for (const engine of searchEngines) {
-        // Slight variation per engine
-        const position = basePosition + Math.floor(Math.random() * 5) - 2;
-        const finalPosition = Math.max(1, position); // Ensure position is at least 1
-        
-        mockRankings.push({
-          keyword_id: keywordId,
-          search_engine: engine,
-          position: finalPosition,
-          url: `https://www.${engine}.com/search?q=${encodeURIComponent(keyword)}`,
-          recorded_at: new Date().toISOString()
+        setNewKeyword('');
+        setKeywordImportance('1');
+        onKeywordAdded();
+      } else {
+        toast({
+          title: 'Error Adding Keyword',
+          description: result.error || 'An unknown error occurred',
+          variant: 'destructive'
         });
       }
-      
-      // Insert mock rankings
-      const { error: rankingsError } = await supabase
-        .from('rankings')
-        .insert(mockRankings as any);
-      
-      if (rankingsError) {
-        console.error('Error adding mock rankings:', rankingsError);
-      }
-      
-      toast({
-        title: 'Keyword Added',
-        description: `"${keyword}" has been added successfully with mock rankings.`,
-      });
-      
-      onKeywordAdded();
     } catch (error: any) {
-      console.error('Error adding keyword:', error);
+      console.error('Exception adding keyword:', error);
       toast({
         title: 'Error Adding Keyword',
-        description: error.message || 'An unknown error occurred.',
-        variant: 'destructive',
+        description: error.message || 'An unknown error occurred',
+        variant: 'destructive'
       });
     } finally {
       setIsSubmitting(false);
@@ -108,67 +106,43 @@ export function KeywordForm({ websiteId, onKeywordAdded, onCancel }: KeywordForm
   };
 
   return (
-    <Dialog open={true} onOpenChange={() => onCancel()}>
-      <DialogContent className="sm:max-w-[500px]">
+    <Dialog open={true} onOpenChange={onCancel}>
+      <DialogContent>
         <DialogHeader>
           <DialogTitle>Add New Keyword</DialogTitle>
-          <DialogDescription>
-            Enter the keyword you want to track for this website.
-          </DialogDescription>
         </DialogHeader>
-        
-        <form onSubmit={handleSubmit}>
-          <div className="grid gap-4 py-4">
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="keyword" className="text-right">
-                Keyword
-              </Label>
-              <Input
-                id="keyword"
-                value={keyword}
-                onChange={(e) => setKeyword(e.target.value)}
-                className="col-span-3"
-                placeholder="digital marketing services"
-                required
-              />
-            </div>
-            
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="importance" className="text-right">
-                Importance
-              </Label>
-              <Select
-                value={importance}
-                onValueChange={setImportance}
-              >
-                <SelectTrigger id="importance" className="col-span-3">
-                  <SelectValue placeholder="Select importance" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="1">1 - Low</SelectItem>
-                  <SelectItem value="2">2 - Below Average</SelectItem>
-                  <SelectItem value="3">3 - Average</SelectItem>
-                  <SelectItem value="4">4 - High</SelectItem>
-                  <SelectItem value="5">5 - Critical</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+        <div className="space-y-4 py-4">
+          <div className="space-y-2">
+            <Label htmlFor="keyword">Keyword</Label>
+            <Input 
+              id="keyword" 
+              placeholder="e.g., seo services"
+              value={newKeyword}
+              onChange={(e) => setNewKeyword(e.target.value)}
+            />
           </div>
-          
-          <DialogFooter>
-            <Button 
-              type="button" 
-              variant="outline" 
-              onClick={onCancel}
-              disabled={isSubmitting}
-            >
-              Cancel
-            </Button>
-            <Button type="submit" disabled={isSubmitting}>
-              {isSubmitting ? 'Adding...' : 'Add Keyword'}
-            </Button>
-          </DialogFooter>
-        </form>
+          <div className="space-y-2">
+            <Label htmlFor="importance">Importance</Label>
+            <Select value={keywordImportance} onValueChange={setKeywordImportance}>
+              <SelectTrigger>
+                <SelectValue placeholder="Select importance" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="1">Low</SelectItem>
+                <SelectItem value="2">Medium</SelectItem>
+                <SelectItem value="3">High</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+        <DialogFooter>
+          <Button type="button" variant="outline" onClick={onCancel} disabled={isSubmitting}>
+            Cancel
+          </Button>
+          <Button onClick={handleAddKeyword} disabled={isSubmitting}>
+            {isSubmitting ? 'Adding...' : 'Add Keyword'}
+          </Button>
+        </DialogFooter>
       </DialogContent>
     </Dialog>
   );

@@ -74,14 +74,14 @@ export function TopNav({ onMenuClick }: TopNavProps) {
   });
 
   const getInitials = () => {
-    if (profile?.first_name && profile?.last_name) {
+    if (profile && profile.first_name && profile.last_name) {
       return `${profile.first_name[0]}${profile.last_name[0]}`;
     }
     return session?.user?.email?.substring(0, 2).toUpperCase() || 'U';
   };
 
   const getUserName = () => {
-    if (profile?.first_name && profile?.last_name) {
+    if (profile && profile.first_name && profile.last_name) {
       return `${profile.first_name} ${profile.last_name}`;
     }
     return session?.user?.email || 'User';
