@@ -155,3 +155,9 @@ export interface SupabaseError {
   hint?: string;
   code?: string;
 }
+
+// Add type assertion utility to handle potential errors
+export function assertData<T>(data: any, fallback: T = [] as unknown as T): T {
+  if (!data || data.error) return fallback;
+  return data as T;
+}
