@@ -39,6 +39,7 @@ import { useToast } from '@/components/ui/use-toast';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { WebsiteSelector } from '@/components/rank-tracking/WebsiteSelector';
+import { TablesInsert, TablesSelect } from '@/integrations/supabase/client';
 import { 
   Plus, 
   CheckCircle, 
@@ -72,19 +73,8 @@ const statusOptions = [
   { value: 'cancelled', label: 'Cancelled', icon: AlertTriangle, color: 'bg-red-100 text-red-800' },
 ];
 
-// Define Task interface
-interface Task {
-  id: string;
-  title: string;
-  description: string | null;
-  task_type: string;
-  priority: string;
-  status: string;
-  website_id: string;
-  created_at: string | null;
-  completed_at: string | null;
-  updated_at: string | null;
-}
+// Define Task type from our TablesSelect definition
+type Task = TablesSelect['tasks'];
 
 const Automation = () => {
   const { toast } = useToast();
@@ -108,7 +98,7 @@ const Automation = () => {
       const { data, error } = await supabase
         .from('tasks')
         .select('*')
-        .eq('website_id', selectedWebsiteId as any);
+        .eq('website_id', selectedWebsiteId);
         
       if (error) {
         toast({
@@ -119,7 +109,7 @@ const Automation = () => {
         return [];
       }
       
-      return (data || []) as unknown as Task[];
+      return (data || []) as Task[];
     },
     enabled: !!selectedWebsiteId
   });
@@ -155,12 +145,14 @@ const Automation = () => {
     }
 
     try {
+      const taskToInsert: TablesInsert['tasks'] = {
+        ...newTask,
+        website_id: selectedWebsiteId
+      };
+
       const { error } = await supabase
         .from('tasks')
-        .insert({
-          ...newTask,
-          website_id: selectedWebsiteId
-        } as any);
+        .insert(taskToInsert);
 
       if (error) throw error;
 
@@ -189,7 +181,7 @@ const Automation = () => {
 
   const updateTaskStatus = async (taskId: string, newStatus: string) => {
     try {
-      const updateData: any = { status: newStatus };
+      const updateData: Partial<TablesInsert['tasks']> = { status: newStatus };
       
       if (newStatus === 'completed') {
         updateData.completed_at = new Date().toISOString();
