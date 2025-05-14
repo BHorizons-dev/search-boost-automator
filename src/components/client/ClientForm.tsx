@@ -12,7 +12,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/components/ui/use-toast';
-import { supabase, apiSchema } from '@/integrations/supabase/client';
+import { supabase, TablesSelect } from '@/integrations/supabase/client';
 
 interface ClientFormProps {
   onClientAdded: () => void;
@@ -61,7 +61,8 @@ export function ClientForm({ onClientAdded, onCancel, existingClient }: ClientFo
       
       if (existingClient) {
         // Update existing client
-        response = await apiSchema('clients')
+        response = await supabase
+          .from('clients')
           .update({
             name: clientData.name,
             company: clientData.company || null,
@@ -72,7 +73,8 @@ export function ClientForm({ onClientAdded, onCancel, existingClient }: ClientFo
           .eq('id', existingClient.id);
       } else {
         // Add new client
-        response = await apiSchema('clients')
+        response = await supabase
+          .from('clients')
           .insert({
             name: clientData.name,
             company: clientData.company || null,

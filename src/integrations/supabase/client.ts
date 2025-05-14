@@ -158,11 +158,6 @@ export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABL
 // Type for tables in the api schema
 export type Table = keyof TablesSelect;
 
-// Direct access to the Supabase client tables
-export function from<T extends Table>(table: T) {
-  return supabase.from(table);
-}
-
 // Type helper for handling query results from Supabase
 export type SupabaseQueryResult<T> = T | null;
 
@@ -195,4 +190,3 @@ export function assertData<T>(data: any, fallback: T = [] as unknown as T): T {
   
   return data as T;
 }
-

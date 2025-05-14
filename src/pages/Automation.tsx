@@ -37,7 +37,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/components/ui/use-toast';
 import { useQuery } from '@tanstack/react-query';
-import { supabase, TablesInsert, TablesSelect, apiSchema, assertData } from '@/integrations/supabase/client';
+import { supabase, TablesInsert, TablesSelect, assertData } from '@/integrations/supabase/client';
 import { WebsiteSelector } from '@/components/rank-tracking/WebsiteSelector';
 import { 
   Plus, 
@@ -75,11 +75,6 @@ const statusOptions = [
 // Define Task type from our TablesSelect definition
 type Task = TablesSelect['tasks'];
 
-// Helper function to safely access the tasks table with proper typing
-const tasksTable = () => {
-  return apiSchema('tasks');
-};
-
 const Automation = () => {
   const { toast } = useToast();
   const [selectedWebsiteId, setSelectedWebsiteId] = useState<string | null>(null);
@@ -100,7 +95,8 @@ const Automation = () => {
     queryFn: async () => {
       if (!selectedWebsiteId) return [];
       
-      const { data, error } = await tasksTable()
+      const { data, error } = await supabase
+        .from('tasks')
         .select('*')
         .eq('website_id', selectedWebsiteId);
         
@@ -152,7 +148,8 @@ const Automation = () => {
         website_id: selectedWebsiteId
       };
 
-      const { error } = await tasksTable()
+      const { error } = await supabase
+        .from('tasks')
         .insert(taskToInsert);
 
       if (error) throw error;
@@ -189,7 +186,8 @@ const Automation = () => {
         updateData.completed_at = new Date().toISOString();
       }
       
-      const { error } = await tasksTable()
+      const { error } = await supabase
+        .from('tasks')
         .update(updateData)
         .eq('id', taskId);
 
@@ -212,7 +210,8 @@ const Automation = () => {
 
   const deleteTask = async (taskId: string) => {
     try {
-      const { error } = await tasksTable()
+      const { error } = await supabase
+        .from('tasks')
         .delete()
         .eq('id', taskId);
 
