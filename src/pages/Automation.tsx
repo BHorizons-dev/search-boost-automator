@@ -77,7 +77,7 @@ type Task = TablesSelect['tasks'];
 
 // Helper function to safely access the tasks table with proper typing
 const tasksTable = () => {
-  return supabase.from('tasks') as unknown as ReturnType<typeof supabase.from<'tasks'>>;
+  return supabase.from('tasks') as any;
 };
 
 const Automation = () => {
@@ -100,8 +100,7 @@ const Automation = () => {
     queryFn: async () => {
       if (!selectedWebsiteId) return [];
       
-      const { data, error } = await (supabase
-        .from('tasks') as any)
+      const { data, error } = await tasksTable()
         .select('*')
         .eq('website_id', selectedWebsiteId);
         
@@ -155,8 +154,7 @@ const Automation = () => {
         website_id: selectedWebsiteId
       };
 
-      const { error } = await (supabase
-        .from('tasks') as any)
+      const { error } = await tasksTable()
         .insert(taskToInsert);
 
       if (error) throw error;
@@ -193,8 +191,7 @@ const Automation = () => {
         updateData.completed_at = new Date().toISOString();
       }
       
-      const { error } = await (supabase
-        .from('tasks') as any)
+      const { error } = await tasksTable()
         .update(updateData)
         .eq('id', taskId);
 
@@ -217,8 +214,7 @@ const Automation = () => {
 
   const deleteTask = async (taskId: string) => {
     try {
-      const { error } = await (supabase
-        .from('tasks') as any)
+      const { error } = await tasksTable()
         .delete()
         .eq('id', taskId);
 
