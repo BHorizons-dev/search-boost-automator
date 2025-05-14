@@ -148,6 +148,53 @@ export type Database = {
           },
         ]
       }
+      tasks: {
+        Row: {
+          completed_at: string | null
+          created_at: string
+          description: string | null
+          id: string
+          priority: string
+          status: string
+          task_type: string
+          title: string
+          updated_at: string
+          website_id: string
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          priority: string
+          status: string
+          task_type: string
+          title: string
+          updated_at?: string
+          website_id: string
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          priority?: string
+          status?: string
+          task_type?: string
+          title?: string
+          updated_at?: string
+          website_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tasks_website_id_fkey"
+            columns: ["website_id"]
+            isOneToOne: false
+            referencedRelation: "websites"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_profiles: {
         Row: {
           company: string | null

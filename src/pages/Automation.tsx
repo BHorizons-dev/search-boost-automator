@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { 
@@ -77,7 +78,8 @@ type Task = TablesSelect['tasks'];
 
 // Helper function to safely access the tasks table with proper typing
 const tasksTable = () => {
-  return supabase.from('tasks');
+  // Use type assertion to work around TypeScript limitations
+  return supabase.from('tasks') as any;
 };
 
 const Automation = () => {
@@ -95,7 +97,7 @@ const Automation = () => {
   });
 
   // Fetch tasks for the selected website
-  const { data: tasks, isLoading, refetch } = useQuery<Task[]>({
+  const { data: tasks, isLoading, refetch } = useQuery({
     queryKey: ['tasks', selectedWebsiteId],
     queryFn: async () => {
       if (!selectedWebsiteId) return [];
@@ -120,8 +122,6 @@ const Automation = () => {
 
   // Filter tasks based on active tab
   const filteredTasks = tasks?.filter(task => {
-    if (!task || typeof task !== 'object' || !('status' in task)) return false;
-    
     if (activeTab === 'all') return true;
     if (activeTab === 'completed') return task.status === 'completed';
     if (activeTab === 'pending') return task.status === 'pending';
