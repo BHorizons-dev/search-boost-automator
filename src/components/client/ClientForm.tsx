@@ -13,7 +13,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/components/ui/use-toast';
-import { supabase } from '@/integrations/supabase/client';
+import { supabase, TablesInsert } from '@/integrations/supabase/client';
 
 interface ClientFormProps {
   onClientAdded: () => void;
@@ -49,15 +49,17 @@ export function ClientForm({ onClientAdded, onCancel }: ClientFormProps) {
     setFormError(null);
     
     try {
+      const newClient: TablesInsert['clients'] = {
+        name: name.trim(),
+        company: company.trim() || null,
+        email: email.trim() || null,
+        phone: phone.trim() || null,
+        user_id: userId
+      };
+      
       const { error } = await supabase
         .from('clients')
-        .insert({
-          name: name.trim(),
-          company: company.trim() || null,
-          email: email.trim() || null,
-          phone: phone.trim() || null,
-          user_id: userId
-        });
+        .insert(newClient);
         
       if (error) throw error;
       

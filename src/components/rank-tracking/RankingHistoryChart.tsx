@@ -36,7 +36,7 @@ export function RankingHistoryChart({ keywordId }: RankingHistoryChartProps) {
         const { data, error } = await supabase
           .from('keywords')
           .select('keyword')
-          .eq('id', keywordId)
+          .eq('id', keywordId as any)
           .single();
           
         if (error) {
@@ -71,7 +71,7 @@ export function RankingHistoryChart({ keywordId }: RankingHistoryChartProps) {
         const { data, error } = await supabase
           .from('rankings')
           .select('search_engine, position, recorded_at')
-          .eq('keyword_id', keywordId)
+          .eq('keyword_id', keywordId as any)
           .order('recorded_at', { ascending: true });
           
         if (error) {

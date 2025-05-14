@@ -21,8 +21,7 @@ import {
 } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/components/ui/use-toast';
-import { supabase } from '@/integrations/supabase/client';
-import type { TablesInsert } from '@/integrations/supabase/client';
+import { supabase, TablesInsert } from '@/integrations/supabase/client';
 
 interface KeywordFormProps {
   websiteId: string;

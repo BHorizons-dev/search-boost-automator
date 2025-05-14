@@ -12,7 +12,7 @@ import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/components/ui/use-toast';
-import { supabase, TablesSelect, assertData } from '@/integrations/supabase/client';
+import { supabase, TablesSelect, TablesInsert, assertData } from '@/integrations/supabase/client';
 
 interface WebsiteAssignmentDialogProps {
   clientId: string;
@@ -108,14 +108,14 @@ export function WebsiteAssignmentDialog({
           .from('client_websites')
           .delete()
           .eq('client_id', clientId)
-          .in('website_id', websitesToRemove);
+          .in('website_id', websitesToRemove as any);
         
         if (removeError) throw new Error(`Error removing websites: ${removeError.message}`);
       }
       
       // Process additions
       if (websitesToAdd.length > 0) {
-        const newAssignments = websitesToAdd.map(websiteId => ({
+        const newAssignments: TablesInsert['client_websites'][] = websitesToAdd.map(websiteId => ({
           client_id: clientId,
           website_id: websiteId
         }));
