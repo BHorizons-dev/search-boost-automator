@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -18,12 +19,14 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { RankingHistoryChart } from '@/components/rank-tracking/RankingHistoryChart';
 import { KeywordForm } from '@/components/rank-tracking/KeywordForm';
 import { WebsiteSelector } from '@/components/rank-tracking/WebsiteSelector';
+import { WebsiteForm } from '@/components/rank-tracking/WebsiteForm';
 
 const searchEngines = ['google', 'bing', 'yahoo'];
 
 const RankTracking = () => {
   const [selectedWebsiteId, setSelectedWebsiteId] = useState<string | null>(null);
   const [showKeywordForm, setShowKeywordForm] = useState(false);
+  const [showWebsiteForm, setShowWebsiteForm] = useState(false);
   const [selectedKeywordId, setSelectedKeywordId] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState("all");
 
@@ -142,6 +145,13 @@ const RankTracking = () => {
     refetchKeywords();
   };
 
+  const handleWebsiteAdded = () => {
+    setShowWebsiteForm(false);
+    // Reset other states when a new website is added
+    setSelectedKeywordId(null);
+    setActiveTab("all");
+  };
+
   // Calculate the change in position compared to previous ranking
   const calculateRankChange = (keywordId: string, searchEngine: string) => {
     if (!rankings) return null;
@@ -183,10 +193,29 @@ const RankTracking = () => {
           </div>
         </div>
         
-        <WebsiteSelector 
-          selectedWebsiteId={selectedWebsiteId}
-          setSelectedWebsiteId={setSelectedWebsiteId}
-        />
+        <div className="flex justify-between items-center">
+          <div className="flex-1">
+            <WebsiteSelector 
+              selectedWebsiteId={selectedWebsiteId}
+              setSelectedWebsiteId={setSelectedWebsiteId}
+              showAddButton={true}
+              onAddClick={() => setShowWebsiteForm(true)}
+            />
+          </div>
+          {!selectedWebsiteId && websites?.length === 0 && (
+            <Button onClick={() => setShowWebsiteForm(true)}>
+              <Plus className="mr-2 h-4 w-4" />
+              Add Your First Website
+            </Button>
+          )}
+        </div>
+
+        {showWebsiteForm && (
+          <WebsiteForm 
+            onWebsiteAdded={handleWebsiteAdded}
+            onCancel={() => setShowWebsiteForm(false)}
+          />
+        )}
 
         {showKeywordForm && selectedWebsiteId && (
           <KeywordForm 

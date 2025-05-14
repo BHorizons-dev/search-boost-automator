@@ -1,10 +1,12 @@
-import React from 'react';
+
+import React, { useState } from 'react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
 import { useQuery } from '@tanstack/react-query';
 import { supabase, TablesSelect, assertData } from '@/integrations/supabase/client';
 import { PlusCircle } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
+import { WebsiteForm } from './WebsiteForm';
 
 interface WebsiteSelectorProps {
   selectedWebsiteId: string | null;
@@ -16,13 +18,14 @@ interface WebsiteSelectorProps {
 export function WebsiteSelector({ 
   selectedWebsiteId, 
   setSelectedWebsiteId,
-  showAddButton = false,
+  showAddButton = true,
   onAddClick
 }: WebsiteSelectorProps) {
   const { toast } = useToast();
+  const [showWebsiteForm, setShowWebsiteForm] = useState(false);
 
   // Fetch websites
-  const { data: websites, isLoading } = useQuery({
+  const { data: websites, isLoading, refetch: refetchWebsites } = useQuery({
     queryKey: ['websites'],
     queryFn: async () => {
       try {
@@ -63,38 +66,56 @@ export function WebsiteSelector({
     }
   }, [websites, selectedWebsiteId, setSelectedWebsiteId]);
 
+  const handleWebsiteAdded = () => {
+    setShowWebsiteForm(false);
+    refetchWebsites();
+  };
+
   return (
-    <div className="flex items-center gap-2">
-      <div className="flex-1">
-        <Select value={selectedWebsiteId || ''} onValueChange={setSelectedWebsiteId}>
-          <SelectTrigger className="w-full">
-            <SelectValue placeholder="Select a website" />
-          </SelectTrigger>
-          <SelectContent>
-            {isLoading ? (
-              <div className="p-2 text-center text-sm text-muted-foreground">
-                Loading websites...
-              </div>
-            ) : websites && websites.length > 0 ? (
-              websites.map((website) => (
-                <SelectItem key={website.id} value={website.id}>
-                  {website.name} ({website.domain})
-                </SelectItem>
-              ))
-            ) : (
-              <div className="p-2 text-center text-sm text-muted-foreground">
-                No websites found
-              </div>
-            )}
-          </SelectContent>
-        </Select>
+    <>
+      <div className="flex items-center gap-2">
+        <div className="flex-1">
+          <Select value={selectedWebsiteId || ''} onValueChange={setSelectedWebsiteId}>
+            <SelectTrigger className="w-full">
+              <SelectValue placeholder="Select a website" />
+            </SelectTrigger>
+            <SelectContent>
+              {isLoading ? (
+                <div className="p-2 text-center text-sm text-muted-foreground">
+                  Loading websites...
+                </div>
+              ) : websites && websites.length > 0 ? (
+                websites.map((website) => (
+                  <SelectItem key={website.id} value={website.id}>
+                    {website.name} ({website.domain})
+                  </SelectItem>
+                ))
+              ) : (
+                <div className="p-2 text-center text-sm text-muted-foreground">
+                  No websites found
+                </div>
+              )}
+            </SelectContent>
+          </Select>
+        </div>
+
+        {showAddButton && (
+          <Button 
+            variant="outline" 
+            size="icon" 
+            onClick={() => onAddClick ? onAddClick() : setShowWebsiteForm(true)}
+          >
+            <PlusCircle className="h-4 w-4" />
+          </Button>
+        )}
       </div>
 
-      {showAddButton && (
-        <Button variant="outline" size="icon" onClick={onAddClick}>
-          <PlusCircle className="h-4 w-4" />
-        </Button>
+      {showWebsiteForm && (
+        <WebsiteForm 
+          onWebsiteAdded={handleWebsiteAdded} 
+          onCancel={() => setShowWebsiteForm(false)} 
+        />
       )}
-    </div>
+    </>
   );
 }

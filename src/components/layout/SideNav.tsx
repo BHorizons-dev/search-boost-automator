@@ -12,6 +12,9 @@ import {
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { cn } from '@/lib/utils';
+import { useAuth } from '@/contexts/AuthContext';
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
 
 interface SideNavProps {
   open: boolean;
@@ -19,6 +22,34 @@ interface SideNavProps {
 }
 
 export function SideNav({ open, setOpen }: SideNavProps) {
+  const { session } = useAuth();
+  
+  const { data: profile } = useQuery({
+    queryKey: ['user-profile-sidenav', session?.user?.id],
+    queryFn: async () => {
+      if (!session?.user?.id) return null;
+      
+      try {
+        const { data, error } = await supabase
+          .from('user_profiles')
+          .select('first_name, last_name, company')
+          .eq('id', session.user.id)
+          .maybeSingle();
+        
+        if (error) {
+          console.error('Error fetching profile in SideNav:', error);
+          return null;
+        }
+        
+        return data;
+      } catch (error) {
+        console.error('Exception fetching profile in SideNav:', error);
+        return null;
+      }
+    },
+    enabled: !!session?.user?.id
+  });
+
   const navItems = [
     { name: 'Dashboard', icon: Home, href: '/' },
     { name: 'Rank Tracking', icon: BarChart2, href: '/rank-tracking' },
@@ -27,6 +58,24 @@ export function SideNav({ open, setOpen }: SideNavProps) {
     { name: 'Clients', icon: Users, href: '/clients' },
     { name: 'Settings', icon: Settings, href: '/settings' },
   ];
+
+  const getInitials = () => {
+    if (profile && profile.first_name && profile.last_name) {
+      return `${profile.first_name[0]}${profile.last_name[0]}`;
+    }
+    return session?.user?.email?.substring(0, 2).toUpperCase() || 'AB';
+  };
+
+  const getUserName = () => {
+    if (profile && profile.first_name && profile.last_name) {
+      return `${profile.first_name} ${profile.last_name}`;
+    }
+    return 'User';
+  };
+
+  const getUserEmail = () => {
+    return session?.user?.email || '';
+  };
 
   return (
     <aside 
@@ -76,12 +125,12 @@ export function SideNav({ open, setOpen }: SideNavProps) {
       <div className="p-4 border-t border-gray-200">
         <div className="flex items-center">
           <div className="w-8 h-8 rounded-full bg-seo-blue flex items-center justify-center text-white">
-            AB
+            {getInitials()}
           </div>
           {open && (
             <div className="ml-3">
-              <p className="text-sm font-medium">Admin User</p>
-              <p className="text-xs text-gray-500">admin@seoboost.com</p>
+              <p className="text-sm font-medium">{getUserName()}</p>
+              <p className="text-xs text-gray-500">{getUserEmail()}</p>
             </div>
           )}
         </div>
