@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { 
@@ -77,6 +78,8 @@ type Task = TablesSelect['tasks'];
 
 // Helper function to safely access the tasks table with proper typing
 const tasksTable = () => {
+  // Use type assertion to work around TypeScript limitations
+  // This is necessary because the types may not be synchronized with the database schema
   return supabase.from('tasks') as any;
 };
 
