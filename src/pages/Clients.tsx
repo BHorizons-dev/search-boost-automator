@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { 
@@ -18,7 +17,7 @@ import {
 } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { apiSchema, TablesSelect } from '@/integrations/supabase/client';
+import { apiSchema, TablesSelect, assertData } from '@/integrations/supabase/client';
 import { useQuery } from '@tanstack/react-query';
 import { useToast } from '@/components/ui/use-toast';
 import { ClientForm } from '@/components/client/ClientForm';
@@ -51,7 +50,7 @@ const Clients = () => {
           return [] as TablesSelect['clients'][];
         }
         
-        return data as TablesSelect['clients'][];
+        return assertData<TablesSelect['clients'][]>(data);
       } catch (error: any) {
         console.error('Caught error fetching clients:', error);
         toast({

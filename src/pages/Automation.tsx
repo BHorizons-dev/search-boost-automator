@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { 
@@ -38,7 +37,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/components/ui/use-toast';
 import { useQuery } from '@tanstack/react-query';
-import { supabase, TablesInsert, TablesSelect, apiSchema } from '@/integrations/supabase/client';
+import { supabase, TablesInsert, TablesSelect, apiSchema, assertData } from '@/integrations/supabase/client';
 import { WebsiteSelector } from '@/components/rank-tracking/WebsiteSelector';
 import { 
   Plus, 
@@ -114,7 +113,7 @@ const Automation = () => {
         return [];
       }
       
-      return (data as Task[]) || [];
+      return assertData<Task[]>(data) || [];
     },
     enabled: !!selectedWebsiteId
   });

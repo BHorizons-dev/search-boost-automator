@@ -19,7 +19,7 @@ import {
 import { Checkbox } from '@/components/ui/checkbox';
 import { useToast } from '@/components/ui/use-toast';
 import { useQuery } from '@tanstack/react-query';
-import { apiSchema, TablesSelect } from '@/integrations/supabase/client';
+import { apiSchema, TablesSelect, assertData } from '@/integrations/supabase/client';
 import { Search } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 
@@ -49,7 +49,7 @@ export function WebsiteAssignmentDialog({
           .order('name');
 
         if (error) throw error;
-        return data as TablesSelect['websites'][];
+        return assertData<TablesSelect['websites'][]>(data);
       } catch (error: any) {
         console.error('Error fetching websites:', error);
         toast({
@@ -72,7 +72,7 @@ export function WebsiteAssignmentDialog({
           .eq('client_id', clientId);
 
         if (error) throw error;
-        return data as { website_id: string }[];
+        return assertData<{ website_id: string }[]>(data);
       } catch (error: any) {
         console.error('Error fetching client websites:', error);
         return [] as { website_id: string }[];
@@ -120,7 +120,8 @@ export function WebsiteAssignmentDialog({
 
       if (fetchError) throw fetchError;
       
-      const currentWebsiteIds = (currentAssignments || []).map(cw => cw.website_id);
+      const currentWebsiteIds = assertData<{ website_id: string }[]>(currentAssignments, [])
+        .map(cw => cw.website_id);
 
       // Determine websites to add and remove
       const websitesToAdd = selectedWebsiteIds.filter(id => !currentWebsiteIds.includes(id));

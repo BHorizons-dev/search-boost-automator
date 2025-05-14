@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { 
@@ -29,7 +28,7 @@ import {
 } from '@/components/ui/select';
 import { useToast } from '@/components/ui/use-toast';
 import { useQuery } from '@tanstack/react-query';
-import { apiSchema, TablesSelect } from '@/integrations/supabase/client';
+import { apiSchema, TablesSelect, assertData } from '@/integrations/supabase/client';
 import { Plus, Search, FileText, RefreshCw } from 'lucide-react';
 import { WebsiteSelector } from '@/components/rank-tracking/WebsiteSelector';
 
@@ -62,7 +61,7 @@ const Keywords = () => {
           return [] as TablesSelect['keywords'][];
         }
         
-        return data as TablesSelect['keywords'][];
+        return assertData<TablesSelect['keywords'][]>(data);
       } catch (error: any) {
         console.error('Exception fetching keywords:', error);
         toast({

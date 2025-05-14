@@ -3,7 +3,7 @@ import React from 'react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
 import { useQuery } from '@tanstack/react-query';
-import { supabase, TablesSelect, apiSchema } from '@/integrations/supabase/client';
+import { supabase, TablesSelect, apiSchema, assertData } from '@/integrations/supabase/client';
 import { PlusCircle } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
 
@@ -41,7 +41,7 @@ export function WebsiteSelector({
           return [];
         }
         
-        return (data as TablesSelect['websites'][]) || [];
+        return assertData<TablesSelect['websites'][]>(data);
       } catch (error: any) {
         console.error('Exception fetching websites:', error);
         toast({
@@ -49,7 +49,7 @@ export function WebsiteSelector({
           description: error.message || 'An unknown error occurred',
           variant: 'destructive'
         });
-        return [];
+        return [] as TablesSelect['websites'][];
       }
     }
   });
