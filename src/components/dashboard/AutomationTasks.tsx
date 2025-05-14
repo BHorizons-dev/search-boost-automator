@@ -5,7 +5,11 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Check, AlertTriangle, Clock } from 'lucide-react';
 
-export function AutomationTasks() {
+interface AutomationTasksProps {
+  websiteId?: string;
+}
+
+export function AutomationTasks({ websiteId }: AutomationTasksProps) {
   const tasks = [
     {
       id: 1,
