@@ -15,6 +15,7 @@ import { useToast } from '@/components/ui/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { useState } from 'react';
+import { TablesInsert } from '@/integrations/supabase/client';
 
 interface WebsiteFormProps {
   onWebsiteAdded: () => void;
@@ -58,18 +59,26 @@ export function WebsiteForm({ onWebsiteAdded, onCancel }: WebsiteFormProps) {
     setIsSubmitting(true);
     
     try {
-      // Create the website object with proper typing
-      const websiteData = {
+      console.log('Adding website with user ID:', session.user.id);
+      
+      // Create a properly typed website object
+      const websiteData: TablesInsert['websites'] = {
         name: name.trim(),
         domain: cleanDomain,
         user_id: session.user.id
       };
       
-      const { error } = await supabase
+      const { data, error } = await supabase
         .from('websites')
-        .insert(websiteData as any);
+        .insert(websiteData)
+        .select();
         
-      if (error) throw error;
+      if (error) {
+        console.error('Error response from Supabase:', error);
+        throw error;
+      }
+      
+      console.log('Website added successfully:', data);
       
       toast({
         title: 'Website Added',
