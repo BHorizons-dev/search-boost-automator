@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -29,6 +28,32 @@ const RankTracking = () => {
   const [showWebsiteForm, setShowWebsiteForm] = useState(false);
   const [selectedKeywordId, setSelectedKeywordId] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState("all");
+
+  // Fetch available websites for the selector
+  const { 
+    data: availableWebsites,
+    isLoading: websitesLoading
+  } = useQuery({
+    queryKey: ['websites'],
+    queryFn: async () => {
+      try {
+        const { data, error } = await supabase
+          .from('websites')
+          .select('*')
+          .order('name');
+          
+        if (error) {
+          console.error('Error fetching websites:', error);
+          return [];
+        }
+        
+        return data || [];
+      } catch (err) {
+        console.error('Exception fetching websites:', err);
+        return [];
+      }
+    }
+  });
 
   // Fetch keywords for the selected website
   const { 
@@ -202,7 +227,7 @@ const RankTracking = () => {
               onAddClick={() => setShowWebsiteForm(true)}
             />
           </div>
-          {!selectedWebsiteId && websites?.length === 0 && (
+          {!selectedWebsiteId && availableWebsites?.length === 0 && (
             <Button onClick={() => setShowWebsiteForm(true)}>
               <Plus className="mr-2 h-4 w-4" />
               Add Your First Website
