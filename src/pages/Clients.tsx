@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { 
@@ -17,7 +18,7 @@ import {
 } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { supabase } from '@/integrations/supabase/client';
+import { apiSchema, supabase } from '@/integrations/supabase/client';
 import { useQuery } from '@tanstack/react-query';
 import { useToast } from '@/components/ui/use-toast';
 import { ClientForm } from '@/components/client/ClientForm';
@@ -36,8 +37,7 @@ const Clients = () => {
     queryKey: ['clients'],
     queryFn: async () => {
       try {
-        const { data, error } = await supabase
-          .from('clients')
+        const { data, error } = await apiSchema('clients')
           .select('*')
           .order('name');
           

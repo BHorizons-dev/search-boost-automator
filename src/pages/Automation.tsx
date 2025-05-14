@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { 
@@ -37,7 +38,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/components/ui/use-toast';
 import { useQuery } from '@tanstack/react-query';
-import { supabase, TablesInsert, TablesSelect } from '@/integrations/supabase/client';
+import { supabase, TablesInsert, TablesSelect, apiSchema } from '@/integrations/supabase/client';
 import { WebsiteSelector } from '@/components/rank-tracking/WebsiteSelector';
 import { 
   Plus, 
@@ -75,6 +76,11 @@ const statusOptions = [
 // Define Task type from our TablesSelect definition
 type Task = TablesSelect['tasks'];
 
+// Helper function to safely access the tasks table with proper typing
+const tasksTable = () => {
+  return apiSchema('tasks');
+};
+
 const Automation = () => {
   const { toast } = useToast();
   const [selectedWebsiteId, setSelectedWebsiteId] = useState<string | null>(null);
@@ -95,8 +101,7 @@ const Automation = () => {
     queryFn: async () => {
       if (!selectedWebsiteId) return [];
       
-      const { data, error } = await supabase
-        .from('tasks')
+      const { data, error } = await tasksTable()
         .select('*')
         .eq('website_id', selectedWebsiteId);
         
@@ -148,8 +153,7 @@ const Automation = () => {
         website_id: selectedWebsiteId
       };
 
-      const { error } = await supabase
-        .from('tasks')
+      const { error } = await tasksTable()
         .insert(taskToInsert);
 
       if (error) throw error;
@@ -186,8 +190,7 @@ const Automation = () => {
         updateData.completed_at = new Date().toISOString();
       }
       
-      const { error } = await supabase
-        .from('tasks')
+      const { error } = await tasksTable()
         .update(updateData)
         .eq('id', taskId);
 
@@ -210,8 +213,7 @@ const Automation = () => {
 
   const deleteTask = async (taskId: string) => {
     try {
-      const { error } = await supabase
-        .from('tasks')
+      const { error } = await tasksTable()
         .delete()
         .eq('id', taskId);
 

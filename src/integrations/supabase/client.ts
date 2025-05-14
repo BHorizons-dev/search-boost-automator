@@ -140,6 +140,11 @@ export type TablesSelect = {
 // Create and export a typed Supabase client
 export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
 
+// Create a helper function to access tables in the api schema
+export function apiSchema<T extends keyof TablesSelect>(table: T) {
+  return supabase.from(`api.${table}`);
+}
+
 // Custom type to simplify the type augmentation
 export type Table = keyof TablesSelect;
 

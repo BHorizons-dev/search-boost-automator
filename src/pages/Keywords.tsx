@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { 
@@ -29,7 +28,7 @@ import {
 } from '@/components/ui/select';
 import { useToast } from '@/components/ui/use-toast';
 import { useQuery } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
+import { supabase, TablesInsert, apiSchema } from '@/integrations/supabase/client';
 import { Plus, Search, FileText, RefreshCw } from 'lucide-react';
 import { WebsiteSelector } from '@/components/rank-tracking/WebsiteSelector';
 
@@ -48,8 +47,7 @@ const Keywords = () => {
       if (!selectedWebsiteId) return [];
       
       try {
-        const { data, error } = await supabase
-          .from('keywords')
+        const { data, error } = await apiSchema('keywords')
           .select('*')
           .eq('website_id', selectedWebsiteId);
           
@@ -95,8 +93,7 @@ const Keywords = () => {
     }
 
     try {
-      const { error } = await supabase
-        .from('keywords')
+      const { error } = await apiSchema('keywords')
         .insert({
           website_id: selectedWebsiteId,
           keyword: newKeyword.trim(),

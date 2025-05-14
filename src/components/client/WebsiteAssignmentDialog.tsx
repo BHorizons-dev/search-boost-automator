@@ -3,11 +3,11 @@ import React, { useState, useEffect } from 'react';
 import {
   Dialog,
   DialogContent,
-  DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
 import {
   Table,
   TableBody,
@@ -16,12 +16,12 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
-import { supabase } from '@/integrations/supabase/client';
-import { toast } from '@/components/ui/use-toast';
+import { useToast } from '@/components/ui/use-toast';
 import { useQuery } from '@tanstack/react-query';
-import type { TablesSelect, TablesInsert } from '@/integrations/supabase/client';
+import { supabase, apiSchema } from '@/integrations/supabase/client';
+import { Search } from 'lucide-react';
+import { Input } from '@/components/ui/input';
 
 interface WebsiteAssignmentDialogProps {
   clientId: string;
@@ -29,169 +29,138 @@ interface WebsiteAssignmentDialogProps {
   onCancel: () => void;
 }
 
-// Define types for our data
-type Client = TablesSelect['clients'];
-type Website = TablesSelect['websites'];
-type ClientWebsite = TablesInsert['client_websites'];
-
-export function WebsiteAssignmentDialog({ 
-  clientId, 
-  onWebsitesAssigned, 
-  onCancel 
+export function WebsiteAssignmentDialog({
+  clientId,
+  onWebsitesAssigned,
+  onCancel,
 }: WebsiteAssignmentDialogProps) {
-  const [selectedWebsites, setSelectedWebsites] = useState<string[]>([]);
+  const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [selectedWebsiteIds, setSelectedWebsiteIds] = useState<string[]>([]);
+  const [searchQuery, setSearchQuery] = useState('');
 
-  // Fetch client data with proper error handling
-  const { data: client } = useQuery<Client | null>({
-    queryKey: ['client', clientId],
+  // Fetch all websites
+  const { data: websites, isLoading: isLoadingWebsites } = useQuery({
+    queryKey: ['websites-for-assignment'],
     queryFn: async () => {
       try {
-        const { data, error } = await supabase
-          .from('clients')
-          .select('*')
-          .eq('id', clientId)
-          .single();
-        
-        if (error) {
-          console.error('Error fetching client:', error);
-          throw error;
-        }
-        
-        return data as Client;
-      } catch (error) {
-        console.error('Error in client query:', error);
-        return null;
-      }
-    }
-  });
-
-  // Fetch websites with proper error handling
-  const { data: websites, isLoading: isLoadingWebsites } = useQuery<Website[]>({
-    queryKey: ['websites'],
-    queryFn: async () => {
-      try {
-        const { data, error } = await supabase
-          .from('websites')
+        const { data, error } = await apiSchema('websites')
           .select('*')
           .order('name');
-        
-        if (error) {
-          console.error('Error fetching websites:', error);
-          throw error;
-        }
-        
-        return (data || []) as Website[];
-      } catch (error) {
-        console.error('Error in websites query:', error);
+
+        if (error) throw error;
+        return data || [];
+      } catch (error: any) {
+        console.error('Error fetching websites:', error);
+        toast({
+          title: 'Error fetching websites',
+          description: error.message,
+          variant: 'destructive',
+        });
         return [];
       }
-    }
+    },
   });
 
-  // Fetch existing assignments with proper error handling
-  const { data: existingAssignments, isLoading: isLoadingAssignments } = useQuery<string[]>({
+  // Fetch websites already assigned to this client
+  const { data: clientWebsites } = useQuery({
     queryKey: ['client-websites', clientId],
     queryFn: async () => {
       try {
-        const { data, error } = await supabase
-          .from('client_websites')
+        const { data, error } = await apiSchema('client_websites')
           .select('website_id')
           .eq('client_id', clientId);
-        
-        if (error) {
-          console.error('Error fetching assignments:', error);
-          throw error;
-        }
-        
-        // Extract website IDs safely
-        if (data && Array.isArray(data)) {
-          return data.map(row => {
-            if (row && typeof row === 'object' && row !== null && 'website_id' in row) {
-              return row.website_id;
-            }
-            return '';
-          }).filter(id => id !== '');
-        }
-        return [];
-      } catch (error) {
-        console.error('Error in assignments query:', error);
+
+        if (error) throw error;
+        return data || [];
+      } catch (error: any) {
+        console.error('Error fetching client websites:', error);
         return [];
       }
-    }
+    },
   });
-  
-  // Set initial selected websites when existing assignments load
-  useEffect(() => {
-    if (existingAssignments) {
-      setSelectedWebsites(existingAssignments);
-    }
-  }, [existingAssignments]);
 
-  const handleToggleWebsite = (websiteId: string) => {
-    setSelectedWebsites(prev => 
-      prev.includes(websiteId)
-        ? prev.filter(id => id !== websiteId)
-        : [...prev, websiteId]
-    );
+  // Set initially selected website IDs based on what's already assigned
+  useEffect(() => {
+    if (clientWebsites && clientWebsites.length > 0) {
+      const websiteIds = clientWebsites.map(cw => cw.website_id);
+      setSelectedWebsiteIds(websiteIds);
+    }
+  }, [clientWebsites]);
+
+  const filteredWebsites = websites?.filter(website => 
+    website.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    website.domain.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  // Check if a website is currently assigned
+  const isWebsiteAssigned = (websiteId: string) => {
+    return selectedWebsiteIds.includes(websiteId);
+  };
+
+  // Toggle website selection
+  const toggleWebsiteSelection = (websiteId: string) => {
+    setSelectedWebsiteIds(prev => {
+      if (prev.includes(websiteId)) {
+        return prev.filter(id => id !== websiteId);
+      } else {
+        return [...prev, websiteId];
+      }
+    });
   };
 
   const handleSubmit = async () => {
-    if (!clientId) return;
-    
     setIsSubmitting(true);
-    
+
     try {
-      // Get existing assignments
-      const currentAssignments = existingAssignments || [];
+      // First, get currently assigned websites
+      const { data: currentAssignments, error: fetchError } = await apiSchema('client_websites')
+        .select('website_id')
+        .eq('client_id', clientId);
+
+      if (fetchError) throw fetchError;
       
-      // Determine which ones to remove
-      const websitesToRemove = currentAssignments.filter(
-        websiteId => !selectedWebsites.includes(websiteId)
-      );
-      
-      // Determine which ones to add
-      const websitesToAdd = selectedWebsites.filter(
-        websiteId => !currentAssignments.includes(websiteId)
-      );
-      
-      // Remove unselected assignments
-      if (websitesToRemove.length > 0) {
-        const { error: removeError } = await supabase
-          .from('client_websites')
-          .delete()
-          .eq('client_id', clientId)
-          .in('website_id', websitesToRemove);
-          
-        if (removeError) throw removeError;
-      }
-      
+      const currentWebsiteIds = (currentAssignments || []).map(cw => cw.website_id);
+
+      // Determine websites to add and remove
+      const websitesToAdd = selectedWebsiteIds.filter(id => !currentWebsiteIds.includes(id));
+      const websitesToRemove = currentWebsiteIds.filter(id => !selectedWebsiteIds.includes(id));
+
       // Add new assignments
       if (websitesToAdd.length > 0) {
-        const newAssignments: ClientWebsite[] = websitesToAdd.map(websiteId => ({
+        const newAssignments = websitesToAdd.map(websiteId => ({
           client_id: clientId,
-          website_id: websiteId
+          website_id: websiteId,
         }));
-        
-        const { error: addError } = await supabase
-          .from('client_websites')
-          .insert(newAssignments);
-          
-        if (addError) throw addError;
+
+        const { error: insertError } = await apiSchema('client_websites').insert(newAssignments);
+        if (insertError) throw insertError;
       }
-      
+
+      // Remove old assignments
+      if (websitesToRemove.length > 0) {
+        for (const websiteId of websitesToRemove) {
+          const { error: deleteError } = await apiSchema('client_websites')
+            .delete()
+            .eq('client_id', clientId)
+            .eq('website_id', websiteId);
+          
+          if (deleteError) throw deleteError;
+        }
+      }
+
       toast({
         title: 'Websites Assigned',
-        description: 'Website assignments have been updated successfully.'
+        description: 'Website assignments have been updated successfully.',
       });
       
       onWebsitesAssigned();
     } catch (error: any) {
-      console.error('Error assigning websites:', error);
+      console.error('Error updating website assignments:', error);
       toast({
-        title: 'Error Assigning Websites',
-        description: error.message || 'An unknown error occurred.',
-        variant: 'destructive'
+        title: 'Error',
+        description: error.message || 'Failed to update website assignments',
+        variant: 'destructive',
       });
     } finally {
       setIsSubmitting(false);
@@ -200,61 +169,60 @@ export function WebsiteAssignmentDialog({
 
   return (
     <Dialog open={true} onOpenChange={() => onCancel()}>
-      <DialogContent className="sm:max-w-[600px]">
+      <DialogContent className="sm:max-w-[700px]">
         <DialogHeader>
           <DialogTitle>Assign Websites to Client</DialogTitle>
-          <DialogDescription>
-            {client ? `Select websites to assign to ${client.name}` : 'Loading client...'}
-          </DialogDescription>
         </DialogHeader>
         
-        <div className="max-h-[400px] overflow-y-auto mt-4">
-          {isLoadingWebsites || isLoadingAssignments ? (
-            <div className="text-center py-4">Loading websites...</div>
-          ) : websites && websites.length > 0 ? (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead className="w-12"></TableHead>
-                  <TableHead>Website</TableHead>
-                  <TableHead>Domain</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {websites.map((website) => (
-                  <TableRow key={website.id}>
-                    <TableCell>
-                      <Checkbox
-                        checked={selectedWebsites.includes(website.id)}
-                        onCheckedChange={() => handleToggleWebsite(website.id)}
-                      />
-                    </TableCell>
-                    <TableCell>{website.name}</TableCell>
-                    <TableCell>{website.domain}</TableCell>
+        <div className="mt-4">
+          <div className="relative mb-4">
+            <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Search websites..."
+              className="pl-8"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
+          </div>
+          
+          {isLoadingWebsites ? (
+            <div className="text-center py-8 text-muted-foreground">Loading websites...</div>
+          ) : filteredWebsites && filteredWebsites.length > 0 ? (
+            <div className="max-h-[400px] overflow-y-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="w-[50px]"></TableHead>
+                    <TableHead>Website Name</TableHead>
+                    <TableHead>Domain</TableHead>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+                </TableHeader>
+                <TableBody>
+                  {filteredWebsites.map((website) => (
+                    <TableRow key={website.id}>
+                      <TableCell>
+                        <Checkbox 
+                          checked={isWebsiteAssigned(website.id)}
+                          onCheckedChange={() => toggleWebsiteSelection(website.id)}
+                        />
+                      </TableCell>
+                      <TableCell>{website.name}</TableCell>
+                      <TableCell>{website.domain}</TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
           ) : (
-            <div className="text-center py-4 text-muted-foreground">
-              No websites available. Please add websites first.
+            <div className="text-center py-8 text-muted-foreground">
+              No websites found. Please add websites first.
             </div>
           )}
         </div>
-        
+
         <DialogFooter>
-          <Button 
-            type="button" 
-            variant="outline" 
-            onClick={onCancel}
-            disabled={isSubmitting}
-          >
-            Cancel
-          </Button>
-          <Button
-            onClick={handleSubmit}
-            disabled={isSubmitting || !websites?.length}
-          >
+          <Button variant="outline" onClick={onCancel}>Cancel</Button>
+          <Button onClick={handleSubmit} disabled={isSubmitting || isLoadingWebsites}>
             {isSubmitting ? 'Saving...' : 'Save Assignments'}
           </Button>
         </DialogFooter>
