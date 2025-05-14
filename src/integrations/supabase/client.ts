@@ -140,13 +140,19 @@ export type TablesSelect = {
 // Create and export a typed Supabase client
 export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
 
-// Create a helper function to access tables in the api schema
-export function apiSchema<T extends keyof TablesSelect>(table: T) {
-  return supabase.from(`api.${table}`);
+// Type for tables in the api schema
+export type Table = keyof TablesSelect;
+
+// Direct access to the Supabase client tables
+export function from<T extends Table>(table: T) {
+  return supabase.from(table);
 }
 
-// Custom type to simplify the type augmentation
-export type Table = keyof TablesSelect;
+// Helper function to access tables in the api schema with proper typing
+export function apiSchema<T extends Table>(table: T) {
+  // This tells TypeScript that we're returning a PostgrestQueryBuilder with the correct row type
+  return supabase.from(`api.${table}`) as ReturnType<typeof supabase.from<TablesSelect[T]>>;
+}
 
 // Type helper for handling query results from Supabase
 export type SupabaseQueryResult<T> = T | null;

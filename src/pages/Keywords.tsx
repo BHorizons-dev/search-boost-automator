@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { 
@@ -18,7 +19,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { 
   Select, 
   SelectContent, 
@@ -28,7 +29,7 @@ import {
 } from '@/components/ui/select';
 import { useToast } from '@/components/ui/use-toast';
 import { useQuery } from '@tanstack/react-query';
-import { supabase, TablesInsert, apiSchema } from '@/integrations/supabase/client';
+import { apiSchema, TablesSelect } from '@/integrations/supabase/client';
 import { Plus, Search, FileText, RefreshCw } from 'lucide-react';
 import { WebsiteSelector } from '@/components/rank-tracking/WebsiteSelector';
 
@@ -44,7 +45,7 @@ const Keywords = () => {
   const { data: keywords, isLoading, refetch } = useQuery({
     queryKey: ['keywords', selectedWebsiteId],
     queryFn: async () => {
-      if (!selectedWebsiteId) return [];
+      if (!selectedWebsiteId) return [] as TablesSelect['keywords'][];
       
       try {
         const { data, error } = await apiSchema('keywords')
@@ -58,10 +59,10 @@ const Keywords = () => {
             description: error.message,
             variant: 'destructive'
           });
-          return [];
+          return [] as TablesSelect['keywords'][];
         }
         
-        return data || [];
+        return data as TablesSelect['keywords'][];
       } catch (error: any) {
         console.error('Exception fetching keywords:', error);
         toast({
@@ -69,7 +70,7 @@ const Keywords = () => {
           description: error.message || 'An unknown error occurred',
           variant: 'destructive'
         });
-        return [];
+        return [] as TablesSelect['keywords'][];
       }
     },
     enabled: !!selectedWebsiteId,

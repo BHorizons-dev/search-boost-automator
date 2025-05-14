@@ -19,7 +19,7 @@ import {
 import { Checkbox } from '@/components/ui/checkbox';
 import { useToast } from '@/components/ui/use-toast';
 import { useQuery } from '@tanstack/react-query';
-import { supabase, apiSchema } from '@/integrations/supabase/client';
+import { apiSchema, TablesSelect } from '@/integrations/supabase/client';
 import { Search } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 
@@ -49,7 +49,7 @@ export function WebsiteAssignmentDialog({
           .order('name');
 
         if (error) throw error;
-        return data || [];
+        return data as TablesSelect['websites'][];
       } catch (error: any) {
         console.error('Error fetching websites:', error);
         toast({
@@ -57,7 +57,7 @@ export function WebsiteAssignmentDialog({
           description: error.message,
           variant: 'destructive',
         });
-        return [];
+        return [] as TablesSelect['websites'][];
       }
     },
   });
@@ -72,10 +72,10 @@ export function WebsiteAssignmentDialog({
           .eq('client_id', clientId);
 
         if (error) throw error;
-        return data || [];
+        return data as { website_id: string }[];
       } catch (error: any) {
         console.error('Error fetching client websites:', error);
-        return [];
+        return [] as { website_id: string }[];
       }
     },
   });

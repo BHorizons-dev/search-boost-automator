@@ -18,7 +18,7 @@ import {
 } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { apiSchema, supabase } from '@/integrations/supabase/client';
+import { apiSchema, TablesSelect } from '@/integrations/supabase/client';
 import { useQuery } from '@tanstack/react-query';
 import { useToast } from '@/components/ui/use-toast';
 import { ClientForm } from '@/components/client/ClientForm';
@@ -48,10 +48,10 @@ const Clients = () => {
             description: error.message,
             variant: 'destructive'
           });
-          return [];
+          return [] as TablesSelect['clients'][];
         }
         
-        return data || [];
+        return data as TablesSelect['clients'][];
       } catch (error: any) {
         console.error('Caught error fetching clients:', error);
         toast({
@@ -59,7 +59,7 @@ const Clients = () => {
           description: error.message || 'Failed to fetch clients',
           variant: 'destructive'
         });
-        return [];
+        return [] as TablesSelect['clients'][];
       }
     }
   });
