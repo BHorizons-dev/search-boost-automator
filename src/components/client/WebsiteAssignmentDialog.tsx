@@ -44,11 +44,16 @@ export function WebsiteAssignmentDialog({
     queryKey: ['websites-for-assignment'],
     queryFn: async () => {
       try {
+        console.log('Fetching websites from API schema for assignment');
         const { data, error } = await apiSchema('websites')
           .select('*')
           .order('name');
 
-        if (error) throw error;
+        if (error) {
+          console.error('Error fetching websites for assignment:', error);
+          throw error;
+        }
+        console.log('Websites data received for assignment:', data);
         return assertData<TablesSelect['websites'][]>(data);
       } catch (error: any) {
         console.error('Error fetching websites:', error);
@@ -67,11 +72,16 @@ export function WebsiteAssignmentDialog({
     queryKey: ['client-websites', clientId],
     queryFn: async () => {
       try {
+        console.log(`Fetching assigned websites for client ${clientId}`);
         const { data, error } = await apiSchema('client_websites')
           .select('id, website_id')
           .eq('client_id', clientId);
 
-        if (error) throw error;
+        if (error) {
+          console.error('Error fetching client websites:', error);
+          throw error;
+        }
+        console.log('Client websites data:', data);
         return assertData<{ id: string; website_id: string }[]>(data);
       } catch (error: any) {
         console.error('Error fetching client websites:', error);
@@ -84,6 +94,7 @@ export function WebsiteAssignmentDialog({
   useEffect(() => {
     if (clientWebsites && clientWebsites.length > 0) {
       const websiteIds = clientWebsites.map(cw => cw.website_id);
+      console.log('Initially selected website IDs:', websiteIds);
       setSelectedWebsiteIds(websiteIds);
     }
   }, [clientWebsites]);
@@ -114,18 +125,28 @@ export function WebsiteAssignmentDialog({
 
     try {
       // First, get currently assigned websites
+      console.log('Updating website assignments for client', clientId);
+      console.log('Selected website IDs:', selectedWebsiteIds);
+      
       const { data: currentAssignments, error: fetchError } = await apiSchema('client_websites')
         .select('id, website_id')
         .eq('client_id', clientId);
 
-      if (fetchError) throw fetchError;
+      if (fetchError) {
+        console.error('Error getting current assignments:', fetchError);
+        throw fetchError;
+      }
       
       const currentWebsiteIds = assertData<{ id: string; website_id: string }[]>(currentAssignments, [])
         .map(cw => cw.website_id);
+      console.log('Current website IDs:', currentWebsiteIds);
 
       // Determine websites to add and remove
       const websitesToAdd = selectedWebsiteIds.filter(id => !currentWebsiteIds.includes(id));
       const websitesToRemove = currentWebsiteIds.filter(id => !selectedWebsiteIds.includes(id));
+      
+      console.log('Websites to add:', websitesToAdd);
+      console.log('Websites to remove:', websitesToRemove);
 
       // Add new assignments
       if (websitesToAdd.length > 0) {
@@ -135,7 +156,11 @@ export function WebsiteAssignmentDialog({
         }));
 
         const { error: insertError } = await apiSchema('client_websites').insert(newAssignments);
-        if (insertError) throw insertError;
+        if (insertError) {
+          console.error('Error inserting new assignments:', insertError);
+          throw insertError;
+        }
+        console.log('New assignments added successfully');
       }
 
       // Remove old assignments
@@ -146,8 +171,12 @@ export function WebsiteAssignmentDialog({
             .eq('client_id', clientId)
             .eq('website_id', websiteId);
           
-          if (deleteError) throw deleteError;
+          if (deleteError) {
+            console.error(`Error removing assignment for website ${websiteId}:`, deleteError);
+            throw deleteError;
+          }
         }
+        console.log('Old assignments removed successfully');
       }
 
       toast({

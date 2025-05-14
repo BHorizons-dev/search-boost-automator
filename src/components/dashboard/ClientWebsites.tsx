@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { TrendingUp, TrendingDown, Plus } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { useToast } from '@/components/ui/use-toast';
-import { supabase, TablesSelect, assertData } from '@/integrations/supabase/client';
+import { apiSchema, TablesSelect, assertData } from '@/integrations/supabase/client';
 import { WebsiteForm } from '@/components/rank-tracking/WebsiteForm';
 
 export function ClientWebsites() {
@@ -18,8 +18,8 @@ export function ClientWebsites() {
     queryKey: ['client-websites'],
     queryFn: async () => {
       try {
-        const { data, error } = await supabase
-          .from('websites')
+        console.log('Fetching websites from API schema');
+        const { data, error } = await apiSchema('websites')
           .select('*')
           .order('name');
           
@@ -33,6 +33,7 @@ export function ClientWebsites() {
           return [];
         }
         
+        console.log('Websites data received:', data);
         return assertData<TablesSelect['websites'][]>(data, []).map(website => ({
           ...website,
           status: getSEOHealthStatus(website.seo_health_score),
