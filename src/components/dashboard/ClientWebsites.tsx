@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { TrendingUp, TrendingDown, Plus } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { useToast } from '@/components/ui/use-toast';
-import { apiSchema, assertData, TablesSelect } from '@/integrations/supabase/client';
+import { supabase, TablesSelect, assertData } from '@/integrations/supabase/client';
 import { WebsiteForm } from '@/components/rank-tracking/WebsiteForm';
 
 export function ClientWebsites() {
@@ -18,7 +18,8 @@ export function ClientWebsites() {
     queryKey: ['client-websites'],
     queryFn: async () => {
       try {
-        const { data, error } = await apiSchema('websites')
+        const { data, error } = await supabase
+          .from('websites')
           .select('*')
           .order('name');
           
