@@ -6,20 +6,21 @@ import { Button } from '@/components/ui/button';
 import { TrendingUp, TrendingDown, Plus } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { useToast } from '@/components/ui/use-toast';
-import { apiSchema, TablesSelect, assertData } from '@/integrations/supabase/client';
+import { supabase, TablesSelect, assertData } from '@/integrations/supabase/client';
 import { WebsiteForm } from '@/components/rank-tracking/WebsiteForm';
 
 export function ClientWebsites() {
   const { toast } = useToast();
   const [showWebsiteForm, setShowWebsiteForm] = useState(false);
   
-  // Fetch websites from the API schema
+  // Fetch websites from the database directly
   const { data: websites, isLoading, refetch } = useQuery({
     queryKey: ['client-websites'],
     queryFn: async () => {
       try {
-        console.log('Fetching websites from API schema');
-        const { data, error } = await apiSchema('websites')
+        console.log('Fetching websites from database');
+        const { data, error } = await supabase
+          .from('websites')
           .select('*')
           .order('name');
           

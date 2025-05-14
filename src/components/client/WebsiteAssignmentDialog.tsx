@@ -19,7 +19,7 @@ import {
 import { Checkbox } from '@/components/ui/checkbox';
 import { useToast } from '@/components/ui/use-toast';
 import { useQuery } from '@tanstack/react-query';
-import { apiSchema, TablesSelect, assertData } from '@/integrations/supabase/client';
+import { supabase, TablesSelect, assertData } from '@/integrations/supabase/client';
 import { Search } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 
@@ -28,6 +28,14 @@ interface WebsiteAssignmentDialogProps {
   onWebsitesAssigned: () => void;
   onCancel: () => void;
 }
+
+// Define specific types to avoid deep type instantiation
+type ClientWebsite = {
+  id: string;
+  website_id: string;
+};
+
+type Website = TablesSelect['websites'];
 
 export function WebsiteAssignmentDialog({
   clientId,
@@ -45,7 +53,8 @@ export function WebsiteAssignmentDialog({
     queryFn: async () => {
       try {
         console.log('Fetching websites from API schema for assignment');
-        const { data, error } = await apiSchema('websites')
+        const { data, error } = await supabase
+          .from('websites')
           .select('*')
           .order('name');
 
@@ -54,7 +63,7 @@ export function WebsiteAssignmentDialog({
           throw error;
         }
         console.log('Websites data received for assignment:', data);
-        return assertData<TablesSelect['websites'][]>(data);
+        return assertData<Website[]>(data);
       } catch (error: any) {
         console.error('Error fetching websites:', error);
         toast({
@@ -62,7 +71,7 @@ export function WebsiteAssignmentDialog({
           description: error.message,
           variant: 'destructive',
         });
-        return [] as TablesSelect['websites'][];
+        return [] as Website[];
       }
     },
   });
@@ -73,7 +82,8 @@ export function WebsiteAssignmentDialog({
     queryFn: async () => {
       try {
         console.log(`Fetching assigned websites for client ${clientId}`);
-        const { data, error } = await apiSchema('client_websites')
+        const { data, error } = await supabase
+          .from('client_websites')
           .select('id, website_id')
           .eq('client_id', clientId);
 
@@ -82,10 +92,10 @@ export function WebsiteAssignmentDialog({
           throw error;
         }
         console.log('Client websites data:', data);
-        return assertData<{ id: string; website_id: string }[]>(data);
+        return assertData<ClientWebsite[]>(data);
       } catch (error: any) {
         console.error('Error fetching client websites:', error);
-        return [] as { id: string; website_id: string }[];
+        return [] as ClientWebsite[];
       }
     },
   });
@@ -128,7 +138,8 @@ export function WebsiteAssignmentDialog({
       console.log('Updating website assignments for client', clientId);
       console.log('Selected website IDs:', selectedWebsiteIds);
       
-      const { data: currentAssignments, error: fetchError } = await apiSchema('client_websites')
+      const { data: currentAssignments, error: fetchError } = await supabase
+        .from('client_websites')
         .select('id, website_id')
         .eq('client_id', clientId);
 
@@ -137,7 +148,7 @@ export function WebsiteAssignmentDialog({
         throw fetchError;
       }
       
-      const currentWebsiteIds = assertData<{ id: string; website_id: string }[]>(currentAssignments, [])
+      const currentWebsiteIds = assertData<ClientWebsite[]>(currentAssignments, [])
         .map(cw => cw.website_id);
       console.log('Current website IDs:', currentWebsiteIds);
 
@@ -155,7 +166,10 @@ export function WebsiteAssignmentDialog({
           website_id: websiteId,
         }));
 
-        const { error: insertError } = await apiSchema('client_websites').insert(newAssignments);
+        const { error: insertError } = await supabase
+          .from('client_websites')
+          .insert(newAssignments);
+          
         if (insertError) {
           console.error('Error inserting new assignments:', insertError);
           throw insertError;
@@ -166,7 +180,8 @@ export function WebsiteAssignmentDialog({
       // Remove old assignments
       if (websitesToRemove.length > 0) {
         for (const websiteId of websitesToRemove) {
-          const { error: deleteError } = await apiSchema('client_websites')
+          const { error: deleteError } = await supabase
+            .from('client_websites')
             .delete()
             .eq('client_id', clientId)
             .eq('website_id', websiteId);

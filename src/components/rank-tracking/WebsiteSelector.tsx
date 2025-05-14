@@ -3,7 +3,7 @@ import React from 'react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
 import { useQuery } from '@tanstack/react-query';
-import { apiSchema, TablesSelect, assertData } from '@/integrations/supabase/client';
+import { supabase, TablesSelect, assertData } from '@/integrations/supabase/client';
 import { PlusCircle } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
 
@@ -27,8 +27,9 @@ export function WebsiteSelector({
     queryKey: ['websites'],
     queryFn: async () => {
       try {
-        console.log('Fetching websites from API schema for selector');
-        const { data, error } = await apiSchema('websites')
+        console.log('Fetching websites from database for selector');
+        const { data, error } = await supabase
+          .from('websites')
           .select('*')
           .order('name');
           
