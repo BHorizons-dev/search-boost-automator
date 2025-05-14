@@ -30,11 +30,14 @@ export function WebsiteAssignmentDialog({
   const [assignedWebsiteIds, setAssignedWebsiteIds] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   // Fetch all websites and the ones already assigned to this client
   useEffect(() => {
     const fetchData = async () => {
       setIsLoading(true);
+      setError(null);
+      
       try {
         // Fetch all websites
         const { data: allWebsites, error: websitesError } = await supabase
@@ -64,6 +67,7 @@ export function WebsiteAssignmentDialog({
         );
       } catch (error: any) {
         console.error('Error loading data:', error);
+        setError(error.message || 'Failed to load websites');
         toast({
           title: 'Error Loading Data',
           description: error.message || 'Failed to load websites',
@@ -80,6 +84,7 @@ export function WebsiteAssignmentDialog({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
+    setError(null);
     
     try {
       // Get currently assigned website IDs
@@ -130,6 +135,7 @@ export function WebsiteAssignmentDialog({
       onWebsitesAssigned();
     } catch (error: any) {
       console.error('Error updating website assignments:', error);
+      setError(error.message || 'An unknown error occurred');
       toast({
         title: 'Error Updating Assignments',
         description: error.message || 'An unknown error occurred',
@@ -159,6 +165,12 @@ export function WebsiteAssignmentDialog({
         </DialogHeader>
         
         <form onSubmit={handleSubmit}>
+          {error && (
+            <div className="bg-red-50 p-3 rounded mb-4 text-red-600 text-sm">
+              {error}
+            </div>
+          )}
+          
           {isLoading ? (
             <div className="py-6 text-center">Loading websites...</div>
           ) : websites.length === 0 ? (

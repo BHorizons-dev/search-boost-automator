@@ -11,92 +11,68 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/components/ui/use-toast';
-import { supabase, TablesSelect } from '@/integrations/supabase/client';
+import { supabase } from '@/integrations/supabase/client';
 
 interface ClientFormProps {
   onClientAdded: () => void;
   onCancel: () => void;
-  existingClient?: {
-    id: string;
-    name: string;
-    company?: string | null;
-    email?: string | null;
-    phone?: string | null;
-  };
 }
 
-export function ClientForm({ onClientAdded, onCancel, existingClient }: ClientFormProps) {
+export function ClientForm({ onClientAdded, onCancel }: ClientFormProps) {
   const { toast } = useToast();
+  const { session } = useAuth();
+  const userId = session?.user?.id;
+  
+  const [name, setName] = useState('');
+  const [company, setCompany] = useState('');
+  const [email, setEmail] = useState('');
+  const [phone, setPhone] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [clientData, setClientData] = useState({
-    name: existingClient?.name || '',
-    company: existingClient?.company || '',
-    email: existingClient?.email || '',
-    phone: existingClient?.phone || ''
-  });
+  const [formError, setFormError] = useState<string | null>(null);
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setClientData(prev => ({
-      ...prev,
-      [name]: value
-    }));
-  };
-
-  const handleSubmit = async () => {
-    if (!clientData.name.trim()) {
-      toast({
-        title: 'Validation Error',
-        description: 'Client name is required',
-        variant: 'destructive'
-      });
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!name.trim()) {
+      setFormError('Client name is required');
       return;
     }
-
+    
+    if (!userId) {
+      setFormError('You must be logged in to add a client');
+      return;
+    }
+    
     setIsSubmitting(true);
-
+    setFormError(null);
+    
     try {
-      let response;
+      const { error } = await supabase
+        .from('clients')
+        .insert({
+          name: name.trim(),
+          company: company.trim() || null,
+          email: email.trim() || null,
+          phone: phone.trim() || null,
+          user_id: userId
+        });
+        
+      if (error) throw error;
       
-      if (existingClient) {
-        // Update existing client
-        response = await supabase
-          .from('clients')
-          .update({
-            name: clientData.name,
-            company: clientData.company || null,
-            email: clientData.email || null,
-            phone: clientData.phone || null,
-            updated_at: new Date().toISOString()
-          })
-          .eq('id', existingClient.id);
-      } else {
-        // Add new client
-        response = await supabase
-          .from('clients')
-          .insert({
-            name: clientData.name,
-            company: clientData.company || null,
-            email: clientData.email || null,
-            phone: clientData.phone || null,
-            user_id: (await supabase.auth.getUser()).data.user?.id || '',
-          });
-      }
-
-      if (response.error) throw response.error;
-
       toast({
-        title: existingClient ? 'Client Updated' : 'Client Added',
-        description: `${clientData.name} was ${existingClient ? 'updated' : 'added'} successfully.`
+        title: 'Client Added',
+        description: `${name} has been added successfully.`
       });
       
       onClientAdded();
     } catch (error: any) {
       console.error('Error adding client:', error);
+      setFormError(error.message || 'An unknown error occurred');
       toast({
-        title: 'Error',
-        description: error.message || 'Failed to save client',
+        title: 'Error Adding Client',
+        description: error.message || 'An unknown error occurred',
         variant: 'destructive'
       });
     } finally {
@@ -105,65 +81,93 @@ export function ClientForm({ onClientAdded, onCancel, existingClient }: ClientFo
   };
 
   return (
-    <Dialog open={true} onOpenChange={() => onCancel()}>
+    <Dialog open={true} onOpenChange={onCancel}>
       <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
-          <DialogTitle>{existingClient ? 'Edit Client' : 'Add New Client'}</DialogTitle>
+          <DialogTitle>Add New Client</DialogTitle>
           <DialogDescription>
-            {existingClient 
-              ? 'Update client information' 
-              : 'Create a new client to manage websites and SEO tasks'}
+            Enter the details of the client you want to add to your account.
           </DialogDescription>
         </DialogHeader>
-        <div className="space-y-4 py-4">
-          <div className="space-y-2">
-            <Label htmlFor="name">Client Name *</Label>
-            <Input
-              id="name"
-              name="name"
-              placeholder="Enter client name"
-              value={clientData.name}
-              onChange={handleInputChange}
-            />
+        
+        <form onSubmit={handleSubmit}>
+          {formError && (
+            <div className="bg-red-50 p-3 rounded mb-4 text-red-600 text-sm">
+              {formError}
+            </div>
+          )}
+          
+          <div className="grid gap-4 py-4">
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="name" className="text-right">
+                Name*
+              </Label>
+              <Input
+                id="name"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                className="col-span-3"
+                placeholder="John Doe"
+                required
+              />
+            </div>
+            
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="company" className="text-right">
+                Company
+              </Label>
+              <Input
+                id="company"
+                value={company}
+                onChange={(e) => setCompany(e.target.value)}
+                className="col-span-3"
+                placeholder="ACME Inc."
+              />
+            </div>
+            
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="email" className="text-right">
+                Email
+              </Label>
+              <Input
+                id="email"
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="col-span-3"
+                placeholder="john@example.com"
+              />
+            </div>
+            
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="phone" className="text-right">
+                Phone
+              </Label>
+              <Input
+                id="phone"
+                type="tel"
+                value={phone}
+                onChange={(e) => setPhone(e.target.value)}
+                className="col-span-3"
+                placeholder="+1 (555) 123-4567"
+              />
+            </div>
           </div>
-          <div className="space-y-2">
-            <Label htmlFor="company">Company (Optional)</Label>
-            <Input
-              id="company"
-              name="company"
-              placeholder="Company name"
-              value={clientData.company}
-              onChange={handleInputChange}
-            />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="email">Email (Optional)</Label>
-            <Input
-              id="email"
-              name="email"
-              type="email"
-              placeholder="client@example.com"
-              value={clientData.email}
-              onChange={handleInputChange}
-            />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="phone">Phone (Optional)</Label>
-            <Input
-              id="phone"
-              name="phone"
-              placeholder="Phone number"
-              value={clientData.phone}
-              onChange={handleInputChange}
-            />
-          </div>
-        </div>
-        <DialogFooter>
-          <Button variant="outline" onClick={onCancel}>Cancel</Button>
-          <Button onClick={handleSubmit} disabled={isSubmitting}>
-            {isSubmitting ? 'Saving...' : (existingClient ? 'Update Client' : 'Add Client')}
-          </Button>
-        </DialogFooter>
+          
+          <DialogFooter>
+            <Button 
+              type="button" 
+              variant="outline" 
+              onClick={onCancel}
+              disabled={isSubmitting}
+            >
+              Cancel
+            </Button>
+            <Button type="submit" disabled={isSubmitting}>
+              {isSubmitting ? 'Adding...' : 'Add Client'}
+            </Button>
+          </DialogFooter>
+        </form>
       </DialogContent>
     </Dialog>
   );
