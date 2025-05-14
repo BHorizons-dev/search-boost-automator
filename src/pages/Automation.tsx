@@ -100,10 +100,10 @@ const Automation = () => {
     queryFn: async () => {
       if (!selectedWebsiteId) return [];
       
-      const { data, error } = await supabase
-        .from('tasks')
+      const { data, error } = await (supabase
+        .from('tasks') as any)
         .select('*')
-        .eq('website_id', selectedWebsiteId) as any;
+        .eq('website_id', selectedWebsiteId);
         
       if (error) {
         toast({
@@ -155,9 +155,9 @@ const Automation = () => {
         website_id: selectedWebsiteId
       };
 
-      const { error } = await supabase
-        .from('tasks')
-        .insert(taskToInsert) as any;
+      const { error } = await (supabase
+        .from('tasks') as any)
+        .insert(taskToInsert);
 
       if (error) throw error;
 
@@ -193,10 +193,10 @@ const Automation = () => {
         updateData.completed_at = new Date().toISOString();
       }
       
-      const { error } = await supabase
-        .from('tasks')
+      const { error } = await (supabase
+        .from('tasks') as any)
         .update(updateData)
-        .eq('id', taskId) as any;
+        .eq('id', taskId);
 
       if (error) throw error;
 
@@ -217,10 +217,10 @@ const Automation = () => {
 
   const deleteTask = async (taskId: string) => {
     try {
-      const { error } = await supabase
-        .from('tasks')
+      const { error } = await (supabase
+        .from('tasks') as any)
         .delete()
-        .eq('id', taskId) as any;
+        .eq('id', taskId);
 
       if (error) throw error;
 
