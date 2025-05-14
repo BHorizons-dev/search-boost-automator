@@ -35,15 +35,11 @@ export function TopNav({ onMenuClick }: TopNavProps) {
       try {
         console.log('Fetching user profile for ID:', session.user.id);
         
-        // Display user email while we attempt to get profile
-        const userEmail = session.user.email;
-        console.log('User email:', userEmail);
-        
         // Explicitly setting schema in the query to avoid schema issues
         const { data, error } = await supabase
           .from('user_profiles')
           .select('first_name, last_name, company')
-          .eq('id', session.user.id)
+          .eq('id', session.user.id as any)
           .maybeSingle();
         
         if (error) {
@@ -86,8 +82,6 @@ export function TopNav({ onMenuClick }: TopNavProps) {
     }
     return session?.user?.email || 'User';
   };
-
-  console.log("Current session user:", session?.user);
 
   return (
     <div className="border-b">

@@ -58,13 +58,16 @@ export function WebsiteForm({ onWebsiteAdded, onCancel }: WebsiteFormProps) {
     setIsSubmitting(true);
     
     try {
+      // Create the website object with proper typing
+      const websiteData = {
+        name: name.trim(),
+        domain: cleanDomain,
+        user_id: session.user.id
+      };
+      
       const { error } = await supabase
         .from('websites')
-        .insert({
-          name: name.trim(),
-          domain: cleanDomain,
-          user_id: session.user.id
-        } as any);
+        .insert(websiteData as any);
         
       if (error) throw error;
       
