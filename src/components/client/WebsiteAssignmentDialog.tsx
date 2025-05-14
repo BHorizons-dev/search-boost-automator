@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import {
   Dialog,
@@ -52,7 +51,7 @@ export function WebsiteAssignmentDialog({
     queryKey: ['websites-for-assignment'],
     queryFn: async () => {
       try {
-        console.log('Fetching websites from API schema for assignment');
+        console.log('Fetching websites for assignment');
         const { data, error } = await supabase
           .from('websites')
           .select('*')
@@ -63,7 +62,7 @@ export function WebsiteAssignmentDialog({
           throw error;
         }
         console.log('Websites data received for assignment:', data);
-        return assertData<Website[]>(data);
+        return assertData<TablesSelect['websites'][]>(data);
       } catch (error: any) {
         console.error('Error fetching websites:', error);
         toast({
@@ -71,7 +70,7 @@ export function WebsiteAssignmentDialog({
           description: error.message,
           variant: 'destructive',
         });
-        return [] as Website[];
+        return [] as TablesSelect['websites'][];
       }
     },
   });
@@ -92,10 +91,10 @@ export function WebsiteAssignmentDialog({
           throw error;
         }
         console.log('Client websites data:', data);
-        return assertData<ClientWebsite[]>(data);
+        return assertData<{ id: string; website_id: string }[]>(data);
       } catch (error: any) {
         console.error('Error fetching client websites:', error);
-        return [] as ClientWebsite[];
+        return [] as { id: string; website_id: string }[];
       }
     },
   });
@@ -148,8 +147,9 @@ export function WebsiteAssignmentDialog({
         throw fetchError;
       }
       
-      const currentWebsiteIds = assertData<ClientWebsite[]>(currentAssignments, [])
-        .map(cw => cw.website_id);
+      // Use a more specific type for currentAssignments
+      const typedAssignments = assertData<{ id: string; website_id: string }[]>(currentAssignments, []);
+      const currentWebsiteIds = typedAssignments.map(cw => cw.website_id);
       console.log('Current website IDs:', currentWebsiteIds);
 
       // Determine websites to add and remove

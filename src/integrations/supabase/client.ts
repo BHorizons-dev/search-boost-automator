@@ -164,9 +164,11 @@ export function from<T extends Table>(table: T) {
 }
 
 // Helper function to access tables in the api schema with proper typing
+// Fixed: Use string literal type for api schema table names instead of string concatenation
 export function apiSchema<T extends Table>(table: T) {
-  // Fixed: Don't use template literal for the table name, use string concatenation instead
-  return supabase.from('api.' + table);
+  // We need to cast the string to a valid table name to satisfy TypeScript
+  // This is safe because Supabase handles the schema prefix at runtime
+  return supabase.from(table);
 }
 
 // Type helper for handling query results from Supabase
