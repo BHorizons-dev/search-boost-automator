@@ -150,9 +150,9 @@ export function from<T extends Table>(table: T) {
 
 // Helper function to access tables in the api schema with proper typing
 export function apiSchema<T extends Table>(table: T) {
-  // Using direct cast to any to bypass TypeScript's strict type checking
-  // for custom schema tables that aren't defined in the Database type
-  return supabase.from(`api.${table}`) as any;
+  // Using a string literal for the table name to avoid TypeScript errors
+  // and explicitly casting the result to avoid type issues
+  return supabase.from(`api.${String(table)}`) as unknown as ReturnType<typeof supabase.from<TablesSelect[T]>>;
 }
 
 // Type helper for handling query results from Supabase
