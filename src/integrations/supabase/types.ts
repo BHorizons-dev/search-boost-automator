@@ -227,7 +227,11 @@ export type Database = {
           created_at: string
           domain: string
           id: string
+          last_audit_date: string | null
+          meta_description_status: string | null
           name: string
+          seo_health_score: number | null
+          title_tag_status: string | null
           updated_at: string
           user_id: string
         }
@@ -235,7 +239,11 @@ export type Database = {
           created_at?: string
           domain: string
           id?: string
+          last_audit_date?: string | null
+          meta_description_status?: string | null
           name: string
+          seo_health_score?: number | null
+          title_tag_status?: string | null
           updated_at?: string
           user_id: string
         }
@@ -243,7 +251,11 @@ export type Database = {
           created_at?: string
           domain?: string
           id?: string
+          last_audit_date?: string | null
+          meta_description_status?: string | null
           name?: string
+          seo_health_score?: number | null
+          title_tag_status?: string | null
           updated_at?: string
           user_id?: string
         }

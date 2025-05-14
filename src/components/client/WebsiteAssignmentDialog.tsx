@@ -68,14 +68,14 @@ export function WebsiteAssignmentDialog({
     queryFn: async () => {
       try {
         const { data, error } = await apiSchema('client_websites')
-          .select('website_id')
+          .select('id, website_id')
           .eq('client_id', clientId);
 
         if (error) throw error;
-        return assertData<{ website_id: string }[]>(data);
+        return assertData<{ id: string; website_id: string }[]>(data);
       } catch (error: any) {
         console.error('Error fetching client websites:', error);
-        return [] as { website_id: string }[];
+        return [] as { id: string; website_id: string }[];
       }
     },
   });
@@ -115,12 +115,12 @@ export function WebsiteAssignmentDialog({
     try {
       // First, get currently assigned websites
       const { data: currentAssignments, error: fetchError } = await apiSchema('client_websites')
-        .select('website_id')
+        .select('id, website_id')
         .eq('client_id', clientId);
 
       if (fetchError) throw fetchError;
       
-      const currentWebsiteIds = assertData<{ website_id: string }[]>(currentAssignments, [])
+      const currentWebsiteIds = assertData<{ id: string; website_id: string }[]>(currentAssignments, [])
         .map(cw => cw.website_id);
 
       // Determine websites to add and remove
@@ -196,6 +196,7 @@ export function WebsiteAssignmentDialog({
                     <TableHead className="w-[50px]"></TableHead>
                     <TableHead>Website Name</TableHead>
                     <TableHead>Domain</TableHead>
+                    <TableHead>SEO Health</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -209,6 +210,7 @@ export function WebsiteAssignmentDialog({
                       </TableCell>
                       <TableCell>{website.name}</TableCell>
                       <TableCell>{website.domain}</TableCell>
+                      <TableCell>{website.seo_health_score || 'Not assessed'}</TableCell>
                     </TableRow>
                   ))}
                 </TableBody>

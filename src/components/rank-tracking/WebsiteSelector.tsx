@@ -3,7 +3,7 @@ import React from 'react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
 import { useQuery } from '@tanstack/react-query';
-import { supabase, TablesSelect, apiSchema, assertData } from '@/integrations/supabase/client';
+import { apiSchema, TablesSelect, assertData } from '@/integrations/supabase/client';
 import { PlusCircle } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
 

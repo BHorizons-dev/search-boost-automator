@@ -1,45 +1,62 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { TrendingUp, TrendingDown } from 'lucide-react';
+import { TrendingUp, TrendingDown, Plus } from 'lucide-react';
+import { useQuery } from '@tanstack/react-query';
+import { useToast } from '@/components/ui/use-toast';
+import { apiSchema, assertData, TablesSelect } from '@/integrations/supabase/client';
+import { WebsiteForm } from '@/components/rank-tracking/WebsiteForm';
 
 export function ClientWebsites() {
-  const websites = [
-    {
-      name: "Tech Solutions Inc.",
-      domain: "client1.com",
-      status: "healthy",
-      averageRank: 2.7,
-      rankChange: "+1.2",
-      trend: "up",
-    },
-    {
-      name: "Modern Marketing",
-      domain: "client2.com",
-      status: "warning",
-      averageRank: 5.3,
-      rankChange: "-0.8",
-      trend: "down",
-    },
-    {
-      name: "Global Retail",
-      domain: "client3.com",
-      status: "healthy",
-      averageRank: 3.1,
-      rankChange: "+0.5",
-      trend: "up",
-    },
-    {
-      name: "Local Services",
-      domain: "client4.com",
-      status: "healthy",
-      averageRank: 4.2,
-      rankChange: "+0.3",
-      trend: "up",
-    },
-  ];
+  const { toast } = useToast();
+  const [showWebsiteForm, setShowWebsiteForm] = useState(false);
+  
+  // Fetch websites from the API schema
+  const { data: websites, isLoading, refetch } = useQuery({
+    queryKey: ['client-websites'],
+    queryFn: async () => {
+      try {
+        const { data, error } = await apiSchema('websites')
+          .select('*')
+          .order('name');
+          
+        if (error) {
+          console.error('Error fetching websites:', error);
+          toast({
+            title: 'Error fetching websites',
+            description: error.message,
+            variant: 'destructive'
+          });
+          return [];
+        }
+        
+        return assertData<TablesSelect['websites'][]>(data, []).map(website => ({
+          ...website,
+          status: getSEOHealthStatus(website.seo_health_score),
+          averageRank: 4.2, // This would come from actual ranking data
+          rankChange: "+0.3", // This would come from actual ranking data
+          trend: "up", // This would come from actual ranking data
+        }));
+      } catch (error: any) {
+        console.error('Exception fetching websites:', error);
+        toast({
+          title: 'Error fetching websites',
+          description: error.message || 'An unknown error occurred',
+          variant: 'destructive'
+        });
+        return [];
+      }
+    }
+  });
+
+  const getSEOHealthStatus = (score: number | null): 'healthy' | 'warning' | 'critical' => {
+    if (score === null) return 'warning';
+    if (score >= 70) return 'healthy';
+    if (score >= 40) return 'warning';
+    return 'critical';
+  };
 
   const getStatusBadge = (status: string) => {
     switch (status) {
@@ -54,47 +71,79 @@ export function ClientWebsites() {
     }
   };
 
+  const handleWebsiteAdded = () => {
+    setShowWebsiteForm(false);
+    refetch();
+    toast({
+      title: 'Website Added',
+      description: 'The website has been successfully added.',
+    });
+  };
+
   return (
     <Card className="col-span-2">
       <CardHeader className="flex flex-row items-center justify-between pb-2">
         <CardTitle>Client Websites</CardTitle>
-        <Button size="sm" variant="outline">Add Website</Button>
+        <Button size="sm" variant="outline" onClick={() => setShowWebsiteForm(true)}>
+          <Plus className="h-4 w-4 mr-2" />
+          Add Website
+        </Button>
       </CardHeader>
       <CardContent>
-        <div className="space-y-4">
-          {websites.map((website) => (
-            <div key={website.domain} className="p-3 border rounded-md hover:bg-gray-50 cursor-pointer">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="font-medium">{website.name}</p>
-                  <p className="text-sm text-muted-foreground">{website.domain}</p>
+        {isLoading ? (
+          <div className="flex justify-center py-4">Loading websites...</div>
+        ) : websites && websites.length > 0 ? (
+          <div className="space-y-4">
+            {websites.map((website) => (
+              <div key={website.id} className="p-3 border rounded-md hover:bg-gray-50 cursor-pointer">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="font-medium">{website.name}</p>
+                    <p className="text-sm text-muted-foreground">{website.domain}</p>
+                  </div>
+                  <div>{getStatusBadge(website.status)}</div>
                 </div>
-                <div>{getStatusBadge(website.status)}</div>
+                <div className="mt-2 flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-muted-foreground">Avg. Rank</p>
+                    <p className="font-semibold">{website.averageRank}</p>
+                  </div>
+                  <div>
+                    {website.trend === 'up' ? (
+                      <div className="trend-up">
+                        <TrendingUp className="h-4 w-4 inline mr-1 text-green-600" />
+                        <span className="text-green-600">{website.rankChange}</span>
+                      </div>
+                    ) : (
+                      <div className="trend-down">
+                        <TrendingDown className="h-4 w-4 inline mr-1 text-red-600" />
+                        <span className="text-red-600">{website.rankChange}</span>
+                      </div>
+                    )}
+                  </div>
+                  <Button size="sm">Details</Button>
+                </div>
               </div>
-              <div className="mt-2 flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-muted-foreground">Avg. Rank</p>
-                  <p className="font-semibold">{website.averageRank}</p>
-                </div>
-                <div>
-                  {website.trend === 'up' ? (
-                    <div className="trend-up">
-                      <TrendingUp className="h-4 w-4" />
-                      {website.rankChange}
-                    </div>
-                  ) : (
-                    <div className="trend-down">
-                      <TrendingDown className="h-4 w-4" />
-                      {website.rankChange}
-                    </div>
-                  )}
-                </div>
-                <Button size="sm">Details</Button>
-              </div>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        ) : (
+          <div className="text-center py-8">
+            <p className="text-lg text-muted-foreground mb-2">No websites found</p>
+            <p className="text-sm text-muted-foreground mb-4">Add your first website to start tracking SEO performance</p>
+            <Button onClick={() => setShowWebsiteForm(true)}>
+              <Plus className="mr-2 h-4 w-4" />
+              Add Your First Website
+            </Button>
+          </div>
+        )}
       </CardContent>
+
+      {showWebsiteForm && (
+        <WebsiteForm 
+          onWebsiteAdded={handleWebsiteAdded} 
+          onCancel={() => setShowWebsiteForm(false)} 
+        />
+      )}
     </Card>
   );
 }

@@ -18,6 +18,10 @@ export type TablesInsert = {
     id?: string;
     created_at?: string;
     updated_at?: string;
+    seo_health_score?: number | null;
+    meta_description_status?: string | null;
+    title_tag_status?: string | null;
+    last_audit_date?: string | null;
   };
   keywords: {
     website_id: string;
@@ -82,6 +86,10 @@ export type TablesSelect = {
     user_id: string;
     created_at: string;
     updated_at: string;
+    seo_health_score: number | null;
+    meta_description_status: string | null;
+    title_tag_status: string | null;
+    last_audit_date: string | null;
   };
   keywords: {
     id: string;
@@ -111,9 +119,16 @@ export type TablesSelect = {
   };
   client_websites: {
     id: string;
-    client_id: string;
-    website_id: string;
+    name: string;
+    domain: string;
+    user_id: string;
     created_at: string;
+    updated_at: string;
+    seo_health_score: number | null;
+    meta_description_status: string | null;
+    title_tag_status: string | null;
+    last_audit_date: string | null;
+    client_id: string;
   };
   tasks: {
     id: string;
