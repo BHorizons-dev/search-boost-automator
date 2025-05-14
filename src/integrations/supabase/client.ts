@@ -150,8 +150,8 @@ export function from<T extends Table>(table: T) {
 
 // Helper function to access tables in the api schema with proper typing
 export function apiSchema<T extends Table>(table: T) {
-  // This tells TypeScript that we're returning a PostgrestQueryBuilder with the correct row type
-  return supabase.from(`api.${table}`) as ReturnType<typeof supabase.from<TablesSelect[T]>>;
+  // Use type assertion to explicitly tell TypeScript what we're returning
+  return supabase.from(`api.${table}`) as unknown as ReturnType<typeof supabase.from<TablesSelect[T]>>;
 }
 
 // Type helper for handling query results from Supabase
