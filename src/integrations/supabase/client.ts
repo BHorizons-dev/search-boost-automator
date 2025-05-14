@@ -163,14 +163,6 @@ export function from<T extends Table>(table: T) {
   return supabase.from(table);
 }
 
-// Helper function to access tables in the api schema with proper typing
-// Fixed: Use string literal type for api schema table names instead of string concatenation
-export function apiSchema<T extends Table>(table: T) {
-  // We need to cast the string to a valid table name to satisfy TypeScript
-  // This is safe because Supabase handles the schema prefix at runtime
-  return supabase.from(table);
-}
-
 // Type helper for handling query results from Supabase
 export type SupabaseQueryResult<T> = T | null;
 
@@ -185,6 +177,22 @@ export interface SupabaseError {
 
 // Add type assertion utility to handle potential errors
 export function assertData<T>(data: any, fallback: T = [] as unknown as T): T {
-  if (!data || data.error) return fallback;
+  if (!data) {
+    console.error('Data validation error: Received null or undefined data');
+    return fallback;
+  }
+  
+  if (data.error) {
+    console.error('Data validation error:', data.error);
+    return fallback;
+  }
+  
+  // Check if data should be an array but isn't
+  if (Array.isArray(fallback) && !Array.isArray(data)) {
+    console.error('Data validation error: Expected array but received', typeof data);
+    return fallback;
+  }
+  
   return data as T;
 }
+

@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import {
   Dialog,
@@ -34,8 +35,6 @@ type ClientWebsite = {
   website_id: string;
 };
 
-type Website = TablesSelect['websites'];
-
 export function WebsiteAssignmentDialog({
   clientId,
   onWebsitesAssigned,
@@ -61,13 +60,19 @@ export function WebsiteAssignmentDialog({
           console.error('Error fetching websites for assignment:', error);
           throw error;
         }
+        
+        if (!data || !Array.isArray(data)) {
+          console.error('Invalid website data format:', data);
+          throw new Error('Received invalid data format from server');
+        }
+        
         console.log('Websites data received for assignment:', data);
-        return assertData<TablesSelect['websites'][]>(data);
+        return data as TablesSelect['websites'][];
       } catch (error: any) {
         console.error('Error fetching websites:', error);
         toast({
           title: 'Error fetching websites',
-          description: error.message,
+          description: error.message || 'An unexpected error occurred',
           variant: 'destructive',
         });
         return [] as TablesSelect['websites'][];
@@ -90,11 +95,22 @@ export function WebsiteAssignmentDialog({
           console.error('Error fetching client websites:', error);
           throw error;
         }
+        
+        if (!data) {
+          console.error('No data returned for client websites');
+          throw new Error('Failed to retrieve client website assignments');
+        }
+        
         console.log('Client websites data:', data);
-        return assertData<{ id: string; website_id: string }[]>(data);
+        return data as ClientWebsite[];
       } catch (error: any) {
         console.error('Error fetching client websites:', error);
-        return [] as { id: string; website_id: string }[];
+        toast({
+          title: 'Error fetching assigned websites',
+          description: error.message || 'An unexpected error occurred',
+          variant: 'destructive',
+        });
+        return [] as ClientWebsite[];
       }
     },
   });
@@ -147,9 +163,13 @@ export function WebsiteAssignmentDialog({
         throw fetchError;
       }
       
+      if (!currentAssignments) {
+        console.error('Failed to retrieve current website assignments');
+        throw new Error('Database error: Could not retrieve current assignments');
+      }
+      
       // Use a more specific type for currentAssignments
-      const typedAssignments = assertData<{ id: string; website_id: string }[]>(currentAssignments, []);
-      const currentWebsiteIds = typedAssignments.map(cw => cw.website_id);
+      const currentWebsiteIds = currentAssignments.map(cw => cw.website_id);
       console.log('Current website IDs:', currentWebsiteIds);
 
       // Determine websites to add and remove
@@ -172,13 +192,15 @@ export function WebsiteAssignmentDialog({
           
         if (insertError) {
           console.error('Error inserting new assignments:', insertError);
-          throw insertError;
+          throw new Error(`Failed to add website assignments: ${insertError.message}`);
         }
         console.log('New assignments added successfully');
       }
 
       // Remove old assignments
       if (websitesToRemove.length > 0) {
+        const removeErrors = [];
+        
         for (const websiteId of websitesToRemove) {
           const { error: deleteError } = await supabase
             .from('client_websites')
@@ -188,9 +210,14 @@ export function WebsiteAssignmentDialog({
           
           if (deleteError) {
             console.error(`Error removing assignment for website ${websiteId}:`, deleteError);
-            throw deleteError;
+            removeErrors.push(deleteError.message);
           }
         }
+        
+        if (removeErrors.length > 0) {
+          throw new Error(`Failed to remove ${removeErrors.length} website assignments: ${removeErrors.join(', ')}`);
+        }
+        
         console.log('Old assignments removed successfully');
       }
 
