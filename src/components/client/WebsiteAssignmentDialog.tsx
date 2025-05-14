@@ -53,7 +53,7 @@ export function WebsiteAssignmentDialog({
         const { data: assignedWebsites, error: assignedError } = await supabase
           .from('client_websites')
           .select('website_id')
-          .eq('client_id', clientId);
+          .eq('client_id', clientId as any);
 
         if (assignedError) {
           throw new Error(`Error fetching assigned websites: ${assignedError.message}`);
@@ -91,7 +91,7 @@ export function WebsiteAssignmentDialog({
       const { data: currentAssignments, error: fetchError } = await supabase
         .from('client_websites')
         .select('website_id')
-        .eq('client_id', clientId);
+        .eq('client_id', clientId as any);
       
       if (fetchError) throw new Error(`Error fetching current assignments: ${fetchError.message}`);
       
@@ -107,7 +107,7 @@ export function WebsiteAssignmentDialog({
         const { error: removeError } = await supabase
           .from('client_websites')
           .delete()
-          .eq('client_id', clientId)
+          .eq('client_id', clientId as any)
           .in('website_id', websitesToRemove as any);
         
         if (removeError) throw new Error(`Error removing websites: ${removeError.message}`);
@@ -122,7 +122,7 @@ export function WebsiteAssignmentDialog({
         
         const { error: addError } = await supabase
           .from('client_websites')
-          .insert(newAssignments);
+          .insert(newAssignments as any);
         
         if (addError) throw new Error(`Error assigning websites: ${addError.message}`);
       }

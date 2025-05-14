@@ -59,7 +59,7 @@ export function ClientForm({ onClientAdded, onCancel }: ClientFormProps) {
       
       const { error } = await supabase
         .from('clients')
-        .insert(newClient);
+        .insert(newClient as any);
         
       if (error) throw error;
       

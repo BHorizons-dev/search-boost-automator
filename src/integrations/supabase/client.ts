@@ -15,7 +15,7 @@ export const supabase = createClient<Database>(
   SUPABASE_PUBLISHABLE_KEY,
   {
     db: {
-      schema: 'api',
+      schema: 'public',
     },
   }
 );
@@ -156,7 +156,7 @@ export type TablesSelect = {
   };
 };
 
-// Type for tables in the api schema
+// Type for tables in the public schema
 export type Table = keyof TablesSelect;
 
 // Type helper for handling query results from Supabase

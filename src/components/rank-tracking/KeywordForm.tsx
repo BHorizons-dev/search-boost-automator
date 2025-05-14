@@ -1,6 +1,6 @@
+
 // Add correct type handling for KeywordForm component
 
-// First, let's import any files we need to reference but don't need to show here:
 import React, { useState } from 'react';
 import {
   Dialog,
@@ -40,7 +40,7 @@ export const handleWebsiteKeywordSubmit = async (websiteId: string, keyword: str
     
     const { data, error } = await supabase
       .from('keywords')
-      .insert(newKeyword)
+      .insert(newKeyword as any)
       .select('id')
       .single();
       
